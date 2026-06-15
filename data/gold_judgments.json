@@ -1,0 +1,26 @@
+[
+  {
+    "title": "AI Product Manager",
+    "company": "Example Company",
+    "expectedLevel": "strong_match",
+    "notes": "Beijing, AI product direction, salary, skills, and language requirements all match the target profile."
+  },
+  {
+    "title": "Senior Product Manager - Data Intelligence",
+    "company": "Enterprise SaaS Lab",
+    "expectedLevel": "possible_match",
+    "notes": "Good Beijing enterprise/data product fit, but compensation starts below the target range and should be validated."
+  },
+  {
+    "title": "Operations Product Manager",
+    "company": "Generic Internet Platform",
+    "expectedLevel": "low_priority",
+    "notes": "Shanghai location, weaker AI fit, skill gaps, lower compensation, and higher AI replacement/workload risk."
+  },
+  {
+    "title": "Data Agent Product Manager",
+    "company": "Tencent",
+    "expectedLevel": "strong_match",
+    "notes": "Beijing, agent/data direction, strong skill and language fit. Salary is negotiable and should be clarified."
+  }
+]

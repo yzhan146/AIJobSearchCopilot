@@ -4,6 +4,35 @@
     "company": "Example Company",
     "location": "Beijing",
     "description": "Build AI workflow products for enterprise users. Work with engineering, design, and business teams to launch LLM-powered features.",
-    "salary": "60-100w RMB annual package"
+    "salary": "60-100w RMB annual package",
+    "skillset": ["LLM", "workflow", "enterprise product"],
+    "language": ["English", "Mandarin"]
+  },
+  {
+    "title": "Senior Product Manager - Data Intelligence",
+    "company": "Enterprise SaaS Lab",
+    "location": "Beijing",
+    "description": "Define product roadmap for data intelligence and knowledge base products. Collaborate with engineering teams to design user workflows, launch enterprise features, and measure adoption.",
+    "salary": "50-80w RMB annual package",
+    "skillset": ["data analysis", "SQL", "enterprise product"],
+    "language": ["English"]
+  },
+  {
+    "title": "Operations Product Manager",
+    "company": "Generic Internet Platform",
+    "location": "Shanghai",
+    "description": "Manage daily operations tools, coordinate sales quota tracking, and support aggressive deadline delivery in a fast-paced business team.",
+    "salary": "30-45w RMB annual package",
+    "skillset": ["operations", "data entry"],
+    "language": ["Mandarin"]
+  },
+  {
+    "title": "Data Agent Product Manager",
+    "company": "Tencent",
+    "location": "Beijing",
+    "description": "Build Data Agent in TBDS. Empower the BI scenarios.",
+    "salary": "negotiable",
+    "skillset": ["Agent", "data analysis", "SQL"],
+    "language": ["English", "Mandarin"]
   }
 ]

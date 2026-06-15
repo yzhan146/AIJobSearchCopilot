@@ -25,7 +25,157 @@ The demo is designed to explore practical AI application patterns:
 
 ## Status
 
-Initial repository setup. MVP implementation will start next.
+Milestone 1 local MVP is implemented as a TypeScript CLI. The main product workflow is now **hybrid**: LLM structured extraction, schema validation, deterministic scoring, LLM recommendation generation, and export for human review.
+
+See the Milestone 1 recap:
+
+```text
+docs/milestone-1-local-mvp-recap.md
+```
+
+## Quick start
+
+```bash
+npm install
+npm run demo
+```
+
+Run the same workflow through the LLM-enabled path without an API key:
+
+```bash
+npm run demo:llm:mock
+```
+
+Run the prompt experiment:
+
+```bash
+npm run experiment:prompt
+```
+
+Run with OpenAI:
+
+```bash
+copy .env.example .env.local
+```
+
+Fill in `OPENAI_API_KEY`, then set:
+
+```text
+LLM_PROVIDER=openai
+OPENAI_MODEL=gpt-4o-mini
+```
+
+Then run:
+
+```bash
+npm run demo
+```
+
+Run with Gemini:
+
+```bash
+copy .env.example .env.local
+```
+
+Fill in `GEMINI_API_KEY`, then set:
+
+```text
+LLM_PROVIDER=gemini
+GEMINI_MODEL=gemini-2.0-flash-lite
+```
+
+Then run:
+
+```bash
+npm run demo:llm:gemini
+npm run experiment:prompt:gemini
+```
+
+Run with Groq:
+
+```text
+LLM_PROVIDER=groq
+GROQ_MODEL=llama-3.1-8b-instant
+GROQ_API_KEY=your-key
+```
+
+Then run:
+
+```bash
+npm run demo:llm:groq
+npm run experiment:prompt:groq
+```
+
+The demo reads:
+
+- `data/sample_jobs.json`
+- `data/sample_profile.md`
+- `data/gold_judgments.json` for prompt experiment evaluation
+
+It writes local generated files to `exports/`:
+
+- `local-mvp-results.json`
+- `local-mvp-results.csv`
+
+## Local MVP workflow
+
+```text
+sample jobs + candidate profile
+ -> extractJobSignalsWithLlm()
+ -> validate JobSignals
+ -> scoreJob()
+ -> generateRecommendationsWithLlm()
+ -> exportResults()
+```
+
+This first milestone intentionally separates deterministic code from future LLM calls:
+
+| Concept | Current implementation | Interview point |
+|---|---|---|
+| LLM structured extraction | `extractJobSignalsWithLlm()` can call an LLM, but validates output into `JobSignals` | Do not trust raw model text; force structured JSON and validate it |
+| Deterministic scoring | `scoreJob()` remains code-owned | LLMs can extract/explain, but business scoring should be auditable |
+| Prompt experiments | Prompt builders live under `src/llm/prompts/` | Compare prompt strategies against the deterministic baseline |
+| Gold set evaluation | `data/gold_judgments.json` defines human expected labels | Do not judge prompt quality without a target answer |
+| RAG | Candidate profile is read as one local document | Next milestone: chunk profile/project notes and retrieve cited evidence |
+| Function calling | Tools are plain typed functions | Later, expose these same functions as model-callable tools |
+| Agent workflow | `runLocalMvp()` orchestrates fixed steps | Later, add agent decision logic and human approval gates |
+
+## Learning checkpoint: Milestone 1.1
+
+This step is interview-relevant because it shows a practical LLM application pattern:
+
+```text
+LLM extracts or writes
+ -> TypeScript validates
+ -> deterministic code scores
+ -> workflow exports auditable results
+```
+
+If asked why the project does not simply ask the model "is this job good?", the answer is:
+
+> I separated model judgment from business judgment. The LLM is useful for turning messy JD text into structured signals and for writing human-facing recommendations, but the final score is deterministic so it can be tested, explained, and tuned.
+
+## Prompt experiment
+
+`npm run experiment:prompt` compares three patterns on the same sample jobs:
+
+| Pattern | What it does | What to watch |
+|---|---|---|
+| One-shot judgment | Asks the model to score the job directly | Fast, but subjective and harder to audit |
+| Structured extraction | Asks the model to return `JobSignals` only | Easier to validate and debug |
+| Hybrid workflow | Uses structured signals plus deterministic scoring | More reliable for product decisions |
+
+Interview takeaway:
+
+> I ran prompt experiments instead of guessing which prompt was better. The experiment showed why a one-shot prompt is attractive for speed but weaker for reliability. The hybrid approach makes each step auditable: extraction is structured, scoring is deterministic, and recommendation text can still use LLM generation.
+
+The experiment also compares model outputs with a small human-labeled gold set:
+
+```text
+data/gold_judgments.json
+```
+
+This file is intentionally editable. Update it when your human judgment changes, then rerun the experiment to see whether one-shot or hybrid output better matches your target decisions.
 
 ## Safety
 

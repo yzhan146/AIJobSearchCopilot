@@ -1,0 +1,26 @@
+{
+  "name": "ai-job-search-copilot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A local AI job-search workflow demo for learning LLM, RAG, tool calling, and agent orchestration.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "demo": "npm run build && node dist/index.js",
+    "demo:llm:mock": "npm run build && node dist/index.js --llm mock",
+    "demo:llm:gemini": "npm run build && node dist/index.js --llm gemini",
+    "demo:llm:groq": "npm run build && node dist/index.js --llm groq",
+    "experiment:prompt": "npm run build && node dist/experiments/runPromptExperiment.js --llm mock",
+    "experiment:prompt:gemini": "npm run build && node dist/experiments/runPromptExperiment.js --llm gemini",
+    "experiment:prompt:groq": "npm run build && node dist/experiments/runPromptExperiment.js --llm groq",
+    "start": "node dist/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "undici": "^8.4.1"
+  }
+}
