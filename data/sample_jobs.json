@@ -1,38 +1,202 @@
 [
   {
+    "title": "大模型平台产品经理 - 火山方舟",
+    "company": "字节跳动",
+    "location": "Beijing Haidian",
+    "description": "Large model platform product role for Volcengine Ark. Scope includes tenant permissions, metering and billing, logging and monitoring, AI Agent tool calling, B2B commercialization, and enterprise AI platform capabilities.",
+    "salary": "72-126w RMB annual package",
+    "url": "https://www.liepin.com/job/1976089619.shtml",
+    "skillset": ["LLM", "Agent", "API", "monitoring", "enterprise product", "workflow"],
+    "language": ["Mandarin", "English"]
+  },
+  {
     "title": "AI Product Manager",
-    "company": "Example Company",
+    "company": "Apple",
     "location": "Beijing",
-    "description": "Build AI workflow products for enterprise users. Work with engineering, design, and business teams to launch LLM-powered features.",
-    "salary": "60-100w RMB annual package",
+    "description": "AI-powered digital solutions and agentic workflows. Role focuses on business process automation, user workflows, global collaboration, and turning AI capabilities into scalable product experiences.",
+    "salary": "80-140w RMB annual package estimated",
+    "url": "https://jobs.apple.com/zh-cn/details/200660667-0351/ai-product-manager?team=SFTWR",
+    "skillset": ["LLM", "Agent", "workflow", "enterprise product"],
+    "language": ["English", "Mandarin"]
+  },
+  {
+    "title": "AI Innovation Product Manager",
+    "company": "AIIB",
+    "location": "Beijing",
+    "description": "Enterprise AI innovation role in an international organization. Focus on business workflow transformation, sustainable finance technology, cross-region stakeholder collaboration, compliance-aware productization, and AI application strategy.",
+    "salary": "80-150w RMB annual package estimated",
+    "url": "https://completeaitraining.com/news/aiib-hiring-ai-product-manager-in-beijing-for-sustainable/",
+    "skillset": ["LLM", "workflow", "enterprise product", "data analysis"],
+    "language": ["English", "Mandarin"]
+  },
+  {
+    "title": "AI资深产品经理 - Agent方向",
+    "company": "百度",
+    "location": "Beijing Haidian",
+    "description": "Senior AI product manager for Agent direction. Scope includes AI Agent, Prompt Engineering, RAG, model fine-tuning boundaries, 0-to-1 launch, technical collaboration, and AI-native core modules.",
+    "salary": "80-128w RMB annual package",
+    "url": "https://www.liepin.com/job/1982415159.shtml",
+    "skillset": ["Agent", "RAG", "prompt engineering", "LLM", "workflow"],
+    "language": ["Mandarin"]
+  },
+  {
+    "title": "千帆AI产品经理",
+    "company": "百度",
+    "location": "Beijing",
+    "description": "Qianfan AI platform product role. Focus on PaaS platform, tool ecosystem, enterprise AI, AI Agent platform, developer workflows, and cloud service productization.",
+    "salary": "70-120w RMB annual package estimated",
+    "url": "https://talent.baidu.com/jobs/detail/SOCIAL/41875ba7-7f28-4ef8-9a6b-66ab41d57f19",
+    "skillset": ["Agent", "API", "enterprise product", "workflow", "LLM"],
+    "language": ["Mandarin"]
+  },
+  {
+    "title": "AI Application Product Manager (B2B)",
+    "company": "美团 / Sankuai",
+    "location": "Beijing",
+    "description": "B2B AI application product role. Focus on business analysis, merchant and enterprise workflow optimization, AI-enabled operations efficiency, data analysis, and process automation.",
+    "salary": "60-110w RMB annual package estimated",
+    "url": "https://teamedupchina.com/job/ai-application-product-manager-b2b-beijing-sankuai-online-technology-co-ltd-beijing/",
+    "skillset": ["LLM", "workflow", "data analysis", "enterprise product"],
+    "language": ["Mandarin"]
+  },
+  {
+    "title": "AI产品经理",
+    "company": "京东",
+    "location": "Beijing",
+    "description": "AI product manager role potentially covering intelligent customer service, shopping guide, AIGC, Agent, retail AI transformation, business workflow improvement, and data-driven product decisions.",
+    "salary": "80-140w RMB annual package",
+    "url": "https://www.zhipin.com/job_detail/47ce066122a4e9ce1HJ60ty5E1JX.html",
+    "skillset": ["AIGC", "Agent", "data analysis", "workflow"],
+    "language": ["Mandarin"]
+  },
+  {
+    "title": "AI产品经理 - 智能对话与AI员工",
+    "company": "字节跳动 / 抖音生活服务",
+    "location": "Beijing Haidian",
+    "description": "AI dialogue and AI employee product role for merchant lifecycle operations. Focus on human-AI collaboration, AI workflow, business process transformation, decision support, and merchant operation efficiency.",
+    "salary": "45-90w RMB annual package",
+    "url": "https://www.liepin.com/job/1981452473.shtml",
+    "skillset": ["Agent", "workflow", "data analysis", "enterprise product"],
+    "language": ["Mandarin"]
+  },
+  {
+    "title": "产品经理 - AIGC",
+    "company": "京东",
+    "location": "Beijing Tongzhou",
+    "description": "AIGC product planning role. Scope includes product roadmap, requirement analysis, cross-functional collaboration, data-driven decisions, AI product launch, and business scenario implementation.",
+    "salary": "57-114w RMB annual package",
+    "url": "https://www.zhaopin.com/jobdetail/CC192921310J40729157109.htm",
+    "skillset": ["AIGC", "data analysis", "workflow", "enterprise product"],
+    "language": ["Mandarin"]
+  },
+  {
+    "title": "AI Agent 产品经理",
+    "company": "AutoAgents.ai / 未来式智能",
+    "location": "Beijing",
+    "description": "AI Agent product role for enterprise automation workflows. Focus on Agent workflow, automation, complex execution systems, tool orchestration, and fast AI application learning.",
+    "salary": "48-64w RMB annual package",
+    "url": "https://www.zhipin.com/job_detail/0351af3f6393fc9d03N83N26EldZ.html",
+    "skillset": ["Agent", "workflow", "API", "LLM"],
+    "language": ["Mandarin"]
+  },
+  {
+    "title": "高级AI Agent产品经理",
+    "company": "小米",
+    "location": "Beijing",
+    "description": "Senior AI Agent product role. Focus on Agent task flows, platform capabilities, cross-team delivery, ecosystem adaptation, and AI productization.",
+    "salary": "50-100w RMB annual package estimated",
+    "url": "https://www.zhipin.com/job_detail/3866897fc7e509fe0nVz3d66EVNR.html",
+    "skillset": ["Agent", "workflow", "enterprise product"],
+    "language": ["Mandarin", "English"]
+  },
+  {
+    "title": "AI智能体方向产品经理",
+    "company": "百度",
+    "location": "Beijing",
+    "description": "AI Agent product role. Scope includes task orchestration, tool calling, evaluation system, Agent workflow, and productizing intelligent agent capabilities.",
+    "salary": "60-110w RMB annual package estimated",
+    "url": "https://talent.baidu.com/jobs/detail/SOCIAL/8265dd49-dcd2-4ac9-a8d3-1e2b8645b578",
+    "skillset": ["Agent", "tool calling", "workflow", "LLM"],
+    "language": ["Mandarin"]
+  },
+  {
+    "title": "C端产品经理 - AIGC",
+    "company": "百度",
+    "location": "Beijing",
+    "description": "Consumer AIGC product role. Focus on user experience, AIGC applications, data metrics, product iteration, AI capability judgment, and fast product launch.",
+    "salary": "60-100w RMB annual package estimated",
+    "url": "https://talent.baidu.com/jobs/detail/SOCIAL/ae7105e9-3b57-493d-b749-3e899e05904c",
+    "skillset": ["AIGC", "data analysis", "workflow"],
+    "language": ["Mandarin"]
+  },
+  {
+    "title": "AI产品经理",
+    "company": "百度",
+    "location": "Beijing",
+    "description": "General AI product manager role. Potential fit for enterprise AI, platform intelligence, business workflow transformation, and technical product communication.",
+    "salary": "60-110w RMB annual package estimated",
+    "url": "https://talent.baidu.com/jobs/detail/SOCIAL/cc7e4784-7ab9-4fc1-9355-a4486fdcdddd",
+    "skillset": ["LLM", "workflow", "enterprise product", "data analysis"],
+    "language": ["Mandarin"]
+  },
+  {
+    "title": "AI产品经理 - AIGC方向",
+    "company": "美团",
+    "location": "Beijing",
+    "description": "AIGC application product role. Focus on AI product planning, product organization, data analysis, cross-functional delivery, and AI application learning.",
+    "salary": "37.5-60w RMB annual package",
+    "url": "https://www.liepin.com/job/1981168717.shtml",
+    "skillset": ["AIGC", "data analysis", "workflow"],
+    "language": ["Mandarin"]
+  },
+  {
+    "title": "AI Native Device SW Product Manager",
+    "company": "Lenovo",
+    "location": "Beijing",
+    "description": "AI-native software product role for device ecosystem. Focus on global collaboration, AI-native workflow, platform capability productization, and user-facing software experiences.",
+    "salary": "60-110w RMB annual package estimated",
+    "url": "https://cn.indeed.com/q-ai-product-manager-%E8%81%8C%E4%BD%8D.html",
     "skillset": ["LLM", "workflow", "enterprise product"],
     "language": ["English", "Mandarin"]
   },
   {
-    "title": "Senior Product Manager - Data Intelligence",
-    "company": "Enterprise SaaS Lab",
-    "location": "Beijing",
-    "description": "Define product roadmap for data intelligence and knowledge base products. Collaborate with engineering teams to design user workflows, launch enterprise features, and measure adoption.",
-    "salary": "50-80w RMB annual package",
-    "skillset": ["data analysis", "SQL", "enterprise product"],
-    "language": ["English"]
+    "title": "AI Product Manager in China",
+    "company": "LaowaiCareer / 未明确公司",
+    "location": "Beijing / Remote",
+    "description": "AI Product Manager role requiring English PRD writing, Agile collaboration, AI/ML product lifecycle understanding, global collaboration, and technical PM communication.",
+    "salary": "70-100w RMB annual package estimated",
+    "url": "https://www.laowaicareer.com/jobs/ai-product-manager-12243",
+    "skillset": ["LLM", "workflow", "data analysis", "enterprise product"],
+    "language": ["English", "Mandarin"]
   },
   {
-    "title": "Operations Product Manager",
-    "company": "Generic Internet Platform",
-    "location": "Shanghai",
-    "description": "Manage daily operations tools, coordinate sales quota tracking, and support aggressive deadline delivery in a fast-paced business team.",
-    "salary": "30-45w RMB annual package",
-    "skillset": ["operations", "data entry"],
+    "title": "AIGC Platform Product Manager",
+    "company": "腾讯",
+    "location": "Beijing",
+    "description": "AIGC platform product manager role. Focus on AI content generation platform, product lifecycle, platform productization, cross-team product delivery, and user workflows.",
+    "salary": "60-120w RMB annual package estimated",
+    "url": "https://www.jobzmall.com/tencent-holdings/job/aigc-platform-product-manager",
+    "skillset": ["AIGC", "LLM", "workflow", "enterprise product"],
     "language": ["Mandarin"]
   },
   {
-    "title": "Data Agent Product Manager",
-    "company": "Tencent",
+    "title": "AI产品经理 - Coze",
+    "company": "字节跳动 / Coze",
     "location": "Beijing",
-    "description": "Build Data Agent in TBDS. Empower the BI scenarios.",
-    "salary": "negotiable",
-    "skillset": ["Agent", "data analysis", "SQL"],
-    "language": ["English", "Mandarin"]
+    "description": "Coze and Agent platform product direction. Focus on developer and enterprise workflows, Agent orchestration, tool platform, workflow automation, and cross-team collaboration.",
+    "salary": "70-130w RMB annual package estimated",
+    "url": "https://jobs.bytedance.com/campus/position/7535687466646440199/detail",
+    "skillset": ["Agent", "workflow", "API", "enterprise product"],
+    "language": ["Mandarin", "English"]
+  },
+  {
+    "title": "Agent 大模型产品经理",
+    "company": "月之暗面",
+    "location": "Beijing",
+    "description": "Agent and large-model application product role. Focus on Agent workflows, LLM application scenarios, fast AI product learning, platformization, and technical-product translation.",
+    "salary": "70-150w RMB annual package estimated",
+    "url": "https://www.nowcoder.com/jobs/detail/411193",
+    "skillset": ["Agent", "LLM", "workflow", "RAG"],
+    "language": ["Mandarin"]
   }
 ]

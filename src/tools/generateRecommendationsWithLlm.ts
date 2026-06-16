@@ -5,6 +5,7 @@ import type {
   JobRecommendation,
   JobSignals,
   RawJob,
+  RetrievedProfileEvidence,
   ScoreResult
 } from "../schemas.js";
 import { generateRecommendations } from "./generateRecommendations.js";
@@ -19,9 +20,10 @@ export async function generateRecommendationsWithLlm(
   profile: CandidateProfile,
   signals: JobSignals,
   score: ScoreResult,
+  retrievedEvidence: RetrievedProfileEvidence[] = [],
   llmClient?: LlmClient
 ): Promise<RecommendationGenerationResult> {
-  const baseline = generateRecommendations(job, profile, signals, score);
+  const baseline = generateRecommendations(job, profile, signals, score, retrievedEvidence);
 
   if (!llmClient) {
     return {
@@ -30,7 +32,7 @@ export async function generateRecommendationsWithLlm(
     };
   }
 
-  const prompt = buildRecommendationPrompt(job, profile, signals, score, baseline);
+  const prompt = buildRecommendationPrompt(job, profile, signals, score, baseline, retrievedEvidence);
   const llmOutput = await llmClient.generateJson({
     system: prompt.system,
     user: prompt.user,
@@ -52,8 +54,34 @@ function normalizeRecommendation(output: unknown): JobRecommendation {
   return {
     resumeFocusPoints: readStringArray(output.resumeFocusPoints, "resumeFocusPoints"),
     outreachMessage: readRequiredString(output.outreachMessage, "outreachMessage"),
-    interviewTalkingPoints: readStringArray(output.interviewTalkingPoints, "interviewTalkingPoints")
+    interviewTalkingPoints: readStringArray(output.interviewTalkingPoints, "interviewTalkingPoints"),
+    evidenceCitations: readEvidenceCitations(output.evidenceCitations)
   };
+}
+
+function readEvidenceCitations(value: unknown): JobRecommendation["evidenceCitations"] {
+  if (value === undefined) {
+    return [];
+  }
+  if (!Array.isArray(value)) {
+    throw new Error("evidenceCitations must be an array when provided.");
+  }
+
+  return value.map((item, index) => {
+    if (!isRecord(item)) {
+      throw new Error(`evidenceCitations[${index}] must be an object.`);
+    }
+
+    return {
+      id: readRequiredString(item.id, `evidenceCitations[${index}].id`),
+      title: readRequiredString(item.title, `evidenceCitations[${index}].title`),
+      quote: readRequiredString(item.quote, `evidenceCitations[${index}].quote`),
+      relevanceReason: readRequiredString(
+        item.relevanceReason,
+        `evidenceCitations[${index}].relevanceReason`
+      )
+    };
+  });
 }
 
 function readStringArray(value: unknown, fieldName: string): string[] {

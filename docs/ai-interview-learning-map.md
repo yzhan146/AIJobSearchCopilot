@@ -58,10 +58,10 @@ Questions to answer:
 
 Project implementation:
 
-- Index sanitized resume and project experience.
-- Retrieve relevant candidate evidence for each JD.
-- Generate match explanations with citations to retrieved experience.
-- Track false positives and missed evidence.
+- Index sanitized resume, project experience, and target role criteria in `data/profile_knowledge.json`.
+- Retrieve relevant candidate evidence for each JD with `retrieveProfileEvidence()`.
+- Generate match explanations with `evidenceCitations` tied to stable evidence IDs.
+- Track false positives and missed evidence with `npm run eval:rag`.
 
 ## Function calling / tool calling
 

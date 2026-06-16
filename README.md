@@ -27,10 +27,24 @@ The demo is designed to explore practical AI application patterns:
 
 Milestone 1 local MVP is implemented as a TypeScript CLI. The main product workflow is now **hybrid**: LLM structured extraction, schema validation, deterministic scoring, LLM recommendation generation, and export for human review.
 
+Milestone 2 has started with local RAG-backed profile matching: sanitized profile/project/role-criteria chunks are retrieved per JD and connected to recommendations with citations.
+
 See the Milestone 1 recap:
 
 ```text
 docs/milestone-1-local-mvp-recap.md
+```
+
+See the Milestone 2 recap:
+
+```text
+docs/milestone-2-rag-profile-matching.md
+docs/milestone-2-final-recap.md
+docs/milestone-2-learning-guide.md
+docs/rag-chinese-primer.md
+docs/rag-interview-question-bank.md
+docs/non-coder-code-walkthrough.md
+docs/milestone-3-outline.md
 ```
 
 ## Quick start
@@ -50,6 +64,12 @@ Run the prompt experiment:
 
 ```bash
 npm run experiment:prompt
+```
+
+Run the RAG retrieval evaluation:
+
+```bash
+npm run eval:rag
 ```
 
 Run with OpenAI:
@@ -110,12 +130,18 @@ The demo reads:
 
 - `data/sample_jobs.json`
 - `data/sample_profile.md`
+- `data/profile_knowledge.json` for RAG-backed profile evidence
 - `data/gold_judgments.json` for prompt experiment evaluation
+- `data/rag_eval_set.json` for retrieval evaluation
+
+`data/sample_jobs.json` currently uses a sanitized conversion of the Beijing AI product jobs top-20 spreadsheet, with fields normalized into the local `RawJob` schema.
 
 It writes local generated files to `exports/`:
 
 - `local-mvp-results.json`
 - `local-mvp-results.csv`
+- `rag-retrieval-evaluation.json`
+- `rag-retrieval-evaluation.md`
 
 ## Local MVP workflow
 
@@ -123,6 +149,7 @@ It writes local generated files to `exports/`:
 sample jobs + candidate profile
  -> extractJobSignalsWithLlm()
  -> validate JobSignals
+ -> retrieveProfileEvidence()
  -> scoreJob()
  -> generateRecommendationsWithLlm()
  -> exportResults()
@@ -136,7 +163,7 @@ This first milestone intentionally separates deterministic code from future LLM 
 | Deterministic scoring | `scoreJob()` remains code-owned | LLMs can extract/explain, but business scoring should be auditable |
 | Prompt experiments | Prompt builders live under `src/llm/prompts/` | Compare prompt strategies against the deterministic baseline |
 | Gold set evaluation | `data/gold_judgments.json` defines human expected labels | Do not judge prompt quality without a target answer |
-| RAG | Candidate profile is read as one local document | Next milestone: chunk profile/project notes and retrieve cited evidence |
+| RAG | `retrieveProfileEvidence()` retrieves cited chunks from `data/profile_knowledge.json` | Keep retrieval inspectable and evaluate recall before improving embeddings |
 | Function calling | Tools are plain typed functions | Later, expose these same functions as model-callable tools |
 | Agent workflow | `runLocalMvp()` orchestrates fixed steps | Later, add agent decision logic and human approval gates |
 
@@ -176,6 +203,26 @@ data/gold_judgments.json
 ```
 
 This file is intentionally editable. Update it when your human judgment changes, then rerun the experiment to see whether one-shot or hybrid output better matches your target decisions.
+
+## RAG-backed profile matching
+
+Milestone 2 adds a local profile knowledge base:
+
+```text
+data/profile_knowledge.json
+```
+
+Each chunk has an evidence ID, title, category, content, keywords, and citation. The current sample knowledge base contains 28 public-safe evidence chunks based on the sanitized profile, resume details, and public website content. The workflow retrieves the top profile evidence for each job, then passes it into recommendation generation. `JobRecommendation` now includes `evidenceCitations`, so resume focus points and interview talking points are grounded in inspectable evidence instead of generic claims.
+
+Run retrieval eval separately from prompt/generation eval:
+
+```bash
+npm run eval:rag
+```
+
+Interview takeaway:
+
+> I evaluate retrieval before generation. The RAG step retrieves candidate evidence with citations, and `data/rag_eval_set.json` checks whether the expected evidence appears in the top-k results. This prevents a fluent recommendation from hiding poor retrieval quality.
 
 ## Safety
 

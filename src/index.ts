@@ -7,6 +7,7 @@ import { runLocalMvp } from "./workflow/runLocalMvp.js";
 type CliArgs = {
   jobsPath: string;
   profilePath: string;
+  profileKnowledgePath: string;
   outputDir: string;
   llmProvider?: string;
 };
@@ -30,6 +31,7 @@ function readArgs(argv: string[]): CliArgs {
   return {
     jobsPath: resolve(args.get("--jobs") ?? "data/sample_jobs.json"),
     profilePath: resolve(args.get("--profile") ?? "data/sample_profile.md"),
+    profileKnowledgePath: resolve(args.get("--profile-knowledge") ?? "data/profile_knowledge.json"),
     outputDir: resolve(args.get("--output") ?? "exports"),
     ...(args.get("--llm") ? { llmProvider: args.get("--llm") } : {})
   };
@@ -49,6 +51,7 @@ async function main(): Promise<void> {
       ? `LLM mode: ${result.llm.provider} (${result.llm.model})`
       : "LLM mode: disabled"
   );
+  console.log("RAG mode: local keyword retrieval");
   console.log(`JSON output: ${result.outputFiles.jsonPath}`);
   console.log(`CSV output: ${result.outputFiles.csvPath}`);
 

@@ -25,6 +25,35 @@ export type CandidateProfile = {
   language: string[];
 };
 
+export type ProfileEvidenceCategory =
+  | "resume"
+  | "project"
+  | "role_criteria"
+  | "strength"
+  | "learning";
+
+export type ProfileEvidence = {
+  id: string;
+  title: string;
+  category: ProfileEvidenceCategory;
+  content: string;
+  keywords: string[];
+  citation: string;
+};
+
+export type RetrievedProfileEvidence = ProfileEvidence & {
+  score: number;
+  matchedTerms: string[];
+  relevanceReason: string;
+};
+
+export type ProfileEvidenceCitation = {
+  id: string;
+  title: string;
+  quote: string;
+  relevanceReason: string;
+};
+
 export type JobSignals = {
   title: string;
   company: string;
@@ -80,6 +109,7 @@ export type JobRecommendation = {
   resumeFocusPoints: string[];
   outreachMessage: string;
   interviewTalkingPoints: string[];
+  evidenceCitations: ProfileEvidenceCitation[];
 };
 
 export type JobAnalysis = {
@@ -87,9 +117,11 @@ export type JobAnalysis = {
   signals: JobSignals;
   score: ScoreResult;
   recommendation: JobRecommendation;
+  retrievedEvidence: RetrievedProfileEvidence[];
   metadata: {
     signalSource: "deterministic" | "llm";
     recommendationSource: "template" | "llm";
+    retrievalSource: "local_keyword";
     llmProvider?: string;
     llmModel?: string;
   };

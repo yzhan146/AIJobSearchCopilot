@@ -3,6 +3,7 @@ import type {
   JobRecommendation,
   JobSignals,
   RawJob,
+  RetrievedProfileEvidence,
   ScoreResult
 } from "../../schemas.js";
 
@@ -11,12 +12,14 @@ export function buildRecommendationPrompt(
   profile: CandidateProfile,
   signals: JobSignals,
   score: ScoreResult,
-  baseline: JobRecommendation
+  baseline: JobRecommendation,
+  retrievedEvidence: RetrievedProfileEvidence[] = []
 ): { system: string; user: string; mockResponse: JobRecommendation } {
   return {
     system: [
       "You write concise job-search recommendations for an AI product role candidate.",
-      "Return JSON only. Use only the provided profile, signals, and score.",
+      "Return JSON only. Use only the provided profile, signals, score, and retrieved evidence.",
+      "Do not invent citations. Evidence citations must use retrieved evidence ids.",
       "Do not change the score; deterministic code owns scoring."
     ].join(" "),
     user: JSON.stringify(
@@ -25,7 +28,15 @@ export function buildRecommendationPrompt(
         output_schema: {
           resumeFocusPoints: "string[]",
           outreachMessage: "string",
-          interviewTalkingPoints: "string[]"
+          interviewTalkingPoints: "string[]",
+          evidenceCitations: [
+            {
+              id: "string",
+              title: "string",
+              quote: "string",
+              relevanceReason: "string"
+            }
+          ]
         },
         candidateProfile: {
           targetLocation: profile.targetLocation,
@@ -37,7 +48,15 @@ export function buildRecommendationPrompt(
         },
         job,
         signals,
-        score
+        score,
+        retrievedEvidence: retrievedEvidence.map((evidence) => ({
+          id: evidence.id,
+          title: evidence.title,
+          category: evidence.category,
+          content: evidence.content,
+          citation: evidence.citation,
+          relevanceReason: evidence.relevanceReason
+        }))
       },
       null,
       2

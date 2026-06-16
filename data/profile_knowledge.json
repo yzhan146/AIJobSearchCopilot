@@ -1,0 +1,226 @@
+[
+  {
+    "id": "profile-engineering-product-hybrid",
+    "title": "Engineering and product hybrid background",
+    "category": "resume",
+    "content": "Candidate has engineering plus product experience and can translate technical constraints into product requirements, roadmap tradeoffs, and cross-functional execution.",
+    "keywords": ["engineering", "product", "engineering product", "technical constraints", "roadmap", "cross-functional", "requirements", "business teams", "launch", "technical teams"],
+    "citation": "data/sample_profile.md#strengths"
+  },
+  {
+    "id": "profile-fabric-monitoring-hub",
+    "title": "Monitoring Hub unified observability platform",
+    "category": "resume",
+    "content": "Candidate drove a unified monitoring and observability platform for Microsoft Fabric workloads, focused on job discovery, failure diagnosis, cross-workload debugging, and reducing fragmented troubleshooting experiences.",
+    "keywords": ["Monitoring Hub", "observability", "monitoring", "logging", "logs", "job discovery", "failure diagnosis", "cross-workload debugging", "troubleshooting", "Microsoft Fabric"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-platform-adoption-400k-mau",
+    "title": "High-adoption platform product growth",
+    "category": "resume",
+    "content": "Candidate scaled a unified observability platform to 400K+ monthly active users, roughly 80% of Fabric MAU, by prioritizing core user scenarios over workload-specific feature parity.",
+    "keywords": ["400K MAU", "80% MAU", "platform adoption", "user scenarios", "product growth", "feature prioritization", "core scenarios", "Fabric"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-platform-product-execution",
+    "title": "Platform product execution in complex technical contexts",
+    "category": "resume",
+    "content": "Candidate can connect user needs, technical constraints, roadmap tradeoffs, and launch planning in complex product or platform contexts.",
+    "keywords": ["platform product", "technical platform", "user needs", "technical constraints", "roadmap", "tradeoffs", "launch planning", "complex platform", "PaaS", "tool ecosystem", "developer workflow", "tenant permissions", "metering", "billing", "commercialization"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-data-workflow-systems",
+    "title": "Data workflow and execution platform experience",
+    "category": "resume",
+    "content": "Candidate has experience with complex technical platforms, data workflows, job execution, monitoring, scheduling, execution identity, and operational reliability.",
+    "keywords": ["data workflow", "job execution", "monitoring", "scheduling", "execution identity", "operational reliability", "data analysis", "SQL", "enterprise platform"],
+    "citation": "data/sample_profile.md#background"
+  },
+  {
+    "id": "profile-enterprise-execution-scalability",
+    "title": "Enterprise execution scalability and throttling",
+    "category": "resume",
+    "content": "Candidate worked on scheduling, concurrency, throttling, and long-running execution scenarios, including support for 1000+ executions per minute per user and enterprise migration constraints.",
+    "keywords": ["scheduling", "concurrency", "throttling", "long-running jobs", "1000 executions per minute", "enterprise pipelines", "execution scalability", "migration"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-migration-reliability-constraints",
+    "title": "Enterprise migration and reliability constraints",
+    "category": "resume",
+    "content": "Candidate identified and resolved execution constraints such as concurrency limits, API throttling, credential expiration, long-running job lifecycle issues, and reliability gaps in enterprise pipeline migration scenarios.",
+    "keywords": ["migration", "ADF", "HDInsight", "Fabric", "concurrency limits", "API throttling", "credential expiration", "long-running job lifecycle", "reliability gaps"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-observability-monitoring",
+    "title": "Monitoring and operational visibility product thinking",
+    "category": "resume",
+    "content": "Candidate can reason about monitoring, operational visibility, failure awareness, and reliability-oriented product requirements for technical systems.",
+    "keywords": ["monitoring", "observability", "operational visibility", "failure", "reliability", "technical systems", "product requirements"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-ai-driven-monitoring",
+    "title": "AI-driven monitoring and incident insight scenarios",
+    "category": "resume",
+    "content": "Candidate explored AI-driven monitoring scenarios including failure summarization, pattern clustering, anomaly detection, notification, and alerting to reduce manual investigation effort.",
+    "keywords": ["AI-driven monitoring", "failure summarization", "pattern clustering", "anomaly detection", "notification", "alerting", "manual investigation", "incident insights"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-ai-feedback-triage",
+    "title": "AI-assisted customer feedback triage",
+    "category": "resume",
+    "content": "Candidate used keyword filtering and semantic analysis to reduce noisy customer feedback review from roughly 100 posts per week to about 20 posts per week and improve response latency from days to hours.",
+    "keywords": ["AI-assisted triage", "customer feedback", "keyword filtering", "semantic analysis", "noise reduction", "100 posts", "20 posts", "response latency"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-ai-product-delivery-pipeline",
+    "title": "AI-assisted PM, design, and engineering delivery pipeline",
+    "category": "resume",
+    "content": "Candidate enabled a repeatable AI-assisted PM/design/engineering workflow from requirement synthesis to spec generation, design prototyping, and implementation support.",
+    "keywords": ["AI-assisted product delivery", "PM", "design", "engineering", "requirement synthesis", "spec generation", "design prototyping", "implementation support", "workflow", "digital solutions", "business process automation", "AI employee", "intelligent dialogue", "human-AI collaboration", "merchant operation"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-ai-workflow-impact",
+    "title": "Measured impact from AI-assisted workflow adoption",
+    "category": "resume",
+    "content": "Candidate reduced selected spec authoring and review cycles from about one week to about one day, and design iteration from weeks to days by applying AI to well-scoped workflow stages.",
+    "keywords": ["AI workflow impact", "cycle-time reduction", "cycle time", "spec authoring", "spec generation", "review cycle", "one week to one day", "design prototyping", "design iteration", "weeks to days", "well-scoped workflow", "productivity"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-ai-adoption-boundaries",
+    "title": "AI adoption boundaries and human judgment",
+    "category": "strength",
+    "content": "Candidate can articulate where AI can fully automate well-scoped work and where human PM judgment remains necessary for scenario definition, prioritization, and outcome evaluation.",
+    "keywords": ["AI adoption boundaries", "adoption boundaries", "automation versus human review", "human review", "human judgment", "automation", "well-scoped work", "scenario definition", "prioritization", "outcome evaluation", "PM judgment", "AI assistance", "business process transformation", "decision support", "human-AI collaboration", "AI employee"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-copilot-context-aware-assistant",
+    "title": "Cross-workload context-aware Copilot experience",
+    "category": "resume",
+    "content": "Candidate contributed to thinking around cross-workload, context-aware AI assistant experiences with conversational workflows and persistent context.",
+    "keywords": ["Copilot", "context-aware assistant", "cross-workload", "conversational workflow", "persistent context", "AI assistant", "Fabric unified Copilot"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-sql-data-analysis",
+    "title": "SQL and data analysis for BI and product decisions",
+    "category": "resume",
+    "content": "Candidate can use SQL and data analysis concepts to reason about BI, data intelligence, adoption metrics, and product performance.",
+    "keywords": ["SQL", "data analysis", "BI", "data intelligence", "adoption metrics", "product performance", "metrics"],
+    "citation": "data/sample_profile.md#skillset"
+  },
+  {
+    "id": "profile-cross-functional-delivery",
+    "title": "Cross-functional product delivery",
+    "category": "strength",
+    "content": "Candidate can work with engineering, design, business, and operations stakeholders to clarify requirements and drive product delivery.",
+    "keywords": ["cross-functional", "engineering", "design", "business", "operations", "stakeholders", "requirements", "product delivery", "collaboration"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-english-global-collaboration",
+    "title": "English communication and global collaboration",
+    "category": "strength",
+    "content": "Candidate has strong English communication and is suitable for global, cross-border, English-heavy, or documentation-heavy collaboration environments.",
+    "keywords": ["English", "English-speaking stakeholders", "global", "cross-border", "communication", "collaboration", "documentation", "stakeholders", "Mandarin"],
+    "citation": "data/sample_profile.md#language"
+  },
+  {
+    "id": "profile-frontend-platform-experience",
+    "title": "Frontend platform and UX engineering experience",
+    "category": "resume",
+    "content": "Candidate built UI experiences and reusable components, with exposure to end-to-end testing, accessibility, unit testing, and user interaction quality.",
+    "keywords": ["frontend", "UI", "software product", "device software", "AI-native software", "user-facing software", "reusable components", "end-to-end testing", "accessibility", "unit testing", "user interaction", "platform UX"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-dag-visualization-experience",
+    "title": "DAG-like data job visualization experience",
+    "category": "resume",
+    "content": "Candidate built a DAG-like visualization experience for streaming job execution relationships.",
+    "keywords": ["DAG", "visualization", "streaming job", "job execution", "execution relationships", "Azure Streaming", "Synapse"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-backend-data-infrastructure",
+    "title": "Backend data infrastructure and production support",
+    "category": "resume",
+    "content": "Candidate worked on Hadoop infrastructure, logging systems, job queue management, open-source components, production support, and on-call ownership.",
+    "keywords": ["backend", "Hadoop", "logging systems", "job queue management", "open-source", "production support", "on-call", "DRI"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-data-security-compliance",
+    "title": "Data security and compliance product experience",
+    "category": "resume",
+    "content": "Candidate worked on Hadoop-based data security and compliance products involving GDPR and sensitive data protection.",
+    "keywords": ["data security", "compliance", "GDPR", "sensitive data protection", "Hadoop", "privacy", "security product"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-enterprise-ai-target",
+    "title": "Target role criteria: enterprise AI and workflow products",
+    "category": "role_criteria",
+    "content": "Target roles are Beijing-based AI application layer product roles involving AI workflow, AI Agent, Data Agent, BI, AIGC, enterprise AI, productivity AI, or data intelligence.",
+    "keywords": ["Beijing", "AI workflow", "AI Agent", "Data Agent", "BI", "AIGC", "enterprise AI", "productivity AI", "data intelligence", "AI application"],
+    "citation": "data/sample_profile.md#target-roles"
+  },
+  {
+    "id": "profile-compensation-location-target",
+    "title": "Beijing-only and compensation target criteria",
+    "category": "role_criteria",
+    "content": "Candidate targets Beijing-only roles with annual compensation roughly between 600k and 1.5M RMB.",
+    "keywords": ["Beijing", "location", "compensation", "salary", "600k", "1.5M", "RMB", "annual package"],
+    "citation": "data/sample_profile.md#target-roles"
+  },
+  {
+    "id": "profile-honest-ai-positioning",
+    "title": "Honest positioning for AI application product roles",
+    "category": "role_criteria",
+    "content": "Candidate is better positioned for AI application layer, enterprise workflow, productization, and business-process automation than for foundation-model training or pure algorithm research.",
+    "keywords": ["AI application layer", "enterprise workflow", "productization", "business process automation", "not foundation model training", "not pure algorithm research"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
+  },
+  {
+    "id": "profile-ai-application-learning",
+    "title": "AI application learning project",
+    "category": "project",
+    "content": "Candidate is building an AI job-search copilot using LLM structured extraction, deterministic scoring, prompt experiments, RAG-backed profile matching, and agent workflow concepts.",
+    "keywords": ["AI application", "LLM", "LLM-powered features", "RAG", "Agent", "AI Agent", "Data Agent", "AI workflow products", "enterprise users", "workflow", "prompt experiment", "structured extraction", "BI"],
+    "citation": "docs/milestone-1-local-mvp-recap.md#concepts-practiced"
+  },
+  {
+    "id": "profile-llm-structured-output-learning",
+    "title": "LLM structured output and schema validation learning",
+    "category": "learning",
+    "content": "Candidate has practiced using LLM structured extraction, schema validation, and deterministic scoring to keep AI workflow outputs auditable.",
+    "keywords": ["LLM", "structured output", "structured extraction", "schema validation", "deterministic scoring", "auditable", "workflow"],
+    "citation": "docs/milestone-1-local-mvp-recap.md#concepts-practiced"
+  },
+  {
+    "id": "profile-rag-evaluation-learning",
+    "title": "RAG retrieval and evaluation learning",
+    "category": "learning",
+    "content": "Candidate has practiced RAG-backed profile matching, top-k retrieval, evidence citations, and retrieval evaluation with recall@k.",
+    "keywords": ["RAG", "retrieval", "top-k", "recall@k", "evidence", "citation", "retrieval evaluation", "profile matching"],
+    "citation": "docs/milestone-2-rag-profile-matching.md#retrieval-eval"
+  },
+  {
+    "id": "profile-agent-function-calling-learning",
+    "title": "Agent and function calling learning direction",
+    "category": "learning",
+    "content": "Candidate is using this project to learn how fixed workflows can later evolve into tool calling and agent workflow orchestration.",
+    "keywords": ["Agent", "AI Agent", "Function Calling", "Tool Calling", "workflow orchestration", "task orchestration", "typed tools", "human approval", "MCP", "Prompt Engineering", "RAG", "model fine-tuning boundaries", "evaluation system", "developer workflow", "tool platform", "Coze"],
+    "citation": "docs/ai-interview-learning-map.md#function-calling--tool-calling"
+  }
+]

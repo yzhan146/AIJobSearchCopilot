@@ -34,6 +34,7 @@ function toCsv(analyses: JobAnalysis[]): string {
     "level",
     "signalSource",
     "recommendationSource",
+    "retrievalSource",
     "requiredSkillset",
     "skillMatches",
     "skillGaps",
@@ -44,6 +45,8 @@ function toCsv(analyses: JobAnalysis[]): string {
     "aiSignals",
     "productSignals",
     "riskSignals",
+    "retrievedEvidence",
+    "evidenceCitations",
     "resumeFocusPoints",
     "outreachMessage"
   ];
@@ -57,6 +60,7 @@ function toCsv(analyses: JobAnalysis[]): string {
     analysis.score.level,
     analysis.metadata.signalSource,
     analysis.metadata.recommendationSource,
+    analysis.metadata.retrievalSource,
     analysis.signals.requiredSkillset.join("; "),
     analysis.signals.skillMatches.join("; "),
     analysis.signals.skillGaps.join("; "),
@@ -67,6 +71,12 @@ function toCsv(analyses: JobAnalysis[]): string {
     analysis.signals.aiSignals.join("; "),
     analysis.signals.productSignals.join("; "),
     analysis.signals.riskSignals.join("; "),
+    analysis.retrievedEvidence
+      .map((evidence) => `${evidence.id}: ${evidence.relevanceReason}`)
+      .join("; "),
+    analysis.recommendation.evidenceCitations
+      .map((citation) => `${citation.id}: ${citation.title}`)
+      .join("; "),
     analysis.recommendation.resumeFocusPoints.join("; "),
     analysis.recommendation.outreachMessage
   ]);

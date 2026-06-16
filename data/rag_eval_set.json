@@ -1,0 +1,82 @@
+[
+  {
+    "jobTitle": "大模型平台产品经理 - 火山方舟",
+    "company": "字节跳动",
+    "expectedEvidenceIds": [
+      "profile-ai-application-learning",
+      "profile-enterprise-ai-target",
+      "profile-platform-product-execution"
+    ],
+    "notes": "Large-model platform role should retrieve AI application learning, enterprise AI target, and platform product execution evidence."
+  },
+  {
+    "jobTitle": "AI Product Manager",
+    "company": "Apple",
+    "expectedEvidenceIds": [
+      "profile-ai-application-learning",
+      "profile-enterprise-ai-target",
+      "profile-ai-product-delivery-pipeline"
+    ],
+    "notes": "Apple role should retrieve AI application, enterprise AI target, and AI workflow delivery evidence."
+  },
+  {
+    "jobTitle": "AI资深产品经理 - Agent方向",
+    "company": "百度",
+    "expectedEvidenceIds": [
+      "profile-ai-application-learning",
+      "profile-agent-function-calling-learning",
+      "profile-engineering-product-hybrid"
+    ],
+    "notes": "Agent/RAG/Prompt Engineering role should retrieve AI project learning, tool/agent workflow learning, and engineering-product hybrid evidence."
+  },
+  {
+    "jobTitle": "千帆AI产品经理",
+    "company": "百度",
+    "expectedEvidenceIds": [
+      "profile-ai-application-learning",
+      "profile-enterprise-ai-target",
+      "profile-platform-product-execution"
+    ],
+    "notes": "Qianfan platform role should retrieve AI application, enterprise AI target, and platform product evidence."
+  },
+  {
+    "jobTitle": "AI产品经理 - 智能对话与AI员工",
+    "company": "字节跳动 / 抖音生活服务",
+    "expectedEvidenceIds": [
+      "profile-data-workflow-systems",
+      "profile-enterprise-ai-target",
+      "profile-ai-application-learning"
+    ],
+    "notes": "AI employee role should retrieve data workflow, enterprise AI target, and AI application evidence."
+  },
+  {
+    "jobTitle": "AI智能体方向产品经理",
+    "company": "百度",
+    "expectedEvidenceIds": [
+      "profile-ai-application-learning",
+      "profile-enterprise-ai-target",
+      "profile-agent-function-calling-learning"
+    ],
+    "notes": "Agent orchestration/tool calling role should retrieve AI application, enterprise AI target, and agent/tool learning evidence."
+  },
+  {
+    "jobTitle": "AI Native Device SW Product Manager",
+    "company": "Lenovo",
+    "expectedEvidenceIds": [
+      "profile-frontend-platform-experience",
+      "profile-ai-application-learning",
+      "profile-english-global-collaboration"
+    ],
+    "notes": "AI-native software role should retrieve frontend/software product, AI application, and English/global collaboration evidence."
+  },
+  {
+    "jobTitle": "AI产品经理 - Coze",
+    "company": "字节跳动 / Coze",
+    "expectedEvidenceIds": [
+      "profile-agent-function-calling-learning",
+      "profile-enterprise-ai-target",
+      "profile-ai-application-learning"
+    ],
+    "notes": "Coze/Agent platform role should retrieve agent tooling, enterprise AI target, and AI application project evidence."
+  }
+]

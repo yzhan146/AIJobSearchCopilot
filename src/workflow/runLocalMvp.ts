@@ -1,6 +1,8 @@
 import type { JobAnalysis } from "../schemas.js";
 import { defaultRubric } from "../config/rubric.js";
 import { createLlmClient } from "../llm/createLlmClient.js";
+import { readProfileKnowledge } from "../rag/profileKnowledge.js";
+import { retrieveProfileEvidence } from "../rag/retrieveProfileEvidence.js";
 import { exportResults, type ExportedFiles } from "../tools/exportResults.js";
 import { extractJobSignalsWithLlm } from "../tools/extractJobSignalsWithLlm.js";
 import { generateRecommendationsWithLlm } from "../tools/generateRecommendationsWithLlm.js";
@@ -11,6 +13,7 @@ import { readJobs, readProfile } from "../utils/readData.js";
 export type LocalMvpOptions = {
   jobsPath: string;
   profilePath: string;
+  profileKnowledgePath: string;
   outputDir: string;
   llmProvider?: string;
 };
@@ -30,9 +33,10 @@ export type LocalMvpResult = {
 // In later milestones, individual steps can become LLM calls, RAG retrieval,
 // or function-calling tools without changing the overall product flow.
 export async function runLocalMvp(options: LocalMvpOptions): Promise<LocalMvpResult> {
-  const [jobs, rawProfile] = await Promise.all([
+  const [jobs, rawProfile, profileKnowledge] = await Promise.all([
     readJobs(options.jobsPath),
-    readProfile(options.profilePath)
+    readProfile(options.profilePath),
+    readProfileKnowledge(options.profileKnowledgePath)
   ]);
   const profile = parseCandidateProfile(rawProfile, defaultRubric);
   const llmClient = createLlmClient(options.llmProvider);
@@ -45,11 +49,19 @@ export async function runLocalMvp(options: LocalMvpOptions): Promise<LocalMvpRes
       const signalResult = await extractJobSignalsWithLlm(job, defaultRubric, profile, llmClient);
       const signals = signalResult.signals;
       const score = scoreJob(signals, defaultRubric);
+      const retrievedEvidence = retrieveProfileEvidence({
+        job,
+        profile,
+        signals,
+        knowledgeBase: profileKnowledge,
+        limit: 3
+      });
       const recommendationResult = await generateRecommendationsWithLlm(
         job,
         profile,
         signals,
         score,
+        retrievedEvidence,
         llmClient
       );
 
@@ -58,9 +70,11 @@ export async function runLocalMvp(options: LocalMvpOptions): Promise<LocalMvpRes
         signals,
         score,
         recommendation: recommendationResult.recommendation,
+        retrievedEvidence,
         metadata: {
           signalSource: signalResult.source,
           recommendationSource: recommendationResult.source,
+          retrievalSource: "local_keyword",
           ...(llmClient ? { llmProvider: llmClient.provider, llmModel: llmClient.model } : {})
         }
       };

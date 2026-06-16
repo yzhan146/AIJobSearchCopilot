@@ -61,14 +61,57 @@ Remaining polish before moving deep into Milestone 2:
 
 ## Milestone 2: RAG-backed profile matching
 
-- Store sanitized resume, project notes, and target role criteria.
-- Retrieve relevant candidate experience for each JD.
-- Explain why each retrieved experience supports the match.
-- Evaluate retrieval quality separately from generation quality.
-- Connect retrieved evidence to `JobRecommendation` with citations.
-- Compare recommendation quality with and without RAG.
+Status: ready to close. The RAG baseline is implemented as local keyword retrieval over sanitized resume/profile evidence chunks, with realistic Top20 job samples and a final recap.
+
+Implemented:
+
+- Sanitized profile knowledge base:
+  - `data/profile_knowledge.json`
+  - Expanded to 28 public-safe evidence chunks based on the sanitized profile, resume details, and public website content.
+- RAG eval gold set:
+  - `data/rag_eval_set.json`
+  - Expanded to 8 sample retrieval cases based on the current Top20 job samples.
+- Realistic sample jobs:
+  - `data/sample_jobs.json`
+  - Replaced starter toy jobs with a sanitized conversion of the Beijing AI product jobs Top20 spreadsheet.
+- Core RAG schemas:
+  - `ProfileEvidence`
+  - `RetrievedProfileEvidence`
+  - `ProfileEvidenceCitation`
+- Local retrieval tool:
+  - `src/rag/profileKnowledge.ts`
+  - `src/rag/retrieveProfileEvidence.ts`
+- Workflow integration:
+  - `runLocalMvp()` retrieves top profile evidence for each JD.
+  - `JobRecommendation` includes citation-backed evidence.
+  - JSON/CSV exports include retrieved evidence and citation IDs.
+- Separate retrieval evaluation:
+  - `npm run eval:rag`
+  - `exports/rag-retrieval-evaluation.md`
+- Milestone recap in `docs/milestone-2-rag-profile-matching.md`.
+- Final recap in `docs/milestone-2-final-recap.md`.
+- Learning guide in `docs/milestone-2-learning-guide.md`.
+
+Decision:
+
+- Start with deterministic local retrieval before embeddings so chunking, matched terms, citation quality, and recall@k are easy to inspect.
+- Keep RAG as an explicit workflow node before recommendation generation.
+- Evaluate retrieval quality separately from recommendation wording quality.
+
+Next polish:
+
+- Add embedding retrieval behind the same retrieval interface.
+- Compare keyword retrieval vs embedding retrieval.
+- Expand `data/rag_eval_set.json` beyond current sample jobs if more realistic JDs are added.
+- Compare recommendation quality with and without retrieved evidence.
 
 ## Milestone 3: Tool calling and agent workflow
+
+See the outline:
+
+```text
+docs/milestone-3-outline.md
+```
 
 - Add tool/function calls for:
   - JD extraction

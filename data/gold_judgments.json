@@ -1,26 +1,122 @@
 [
   {
+    "title": "大模型平台产品经理 - 火山方舟",
+    "company": "字节跳动",
+    "expectedLevel": "strong_match",
+    "notes": "Large-model platform, tenant permissions, metering, logging/monitoring, Agent tool calling, and B2B commercialization strongly match platform/execution/monitoring background."
+  },
+  {
     "title": "AI Product Manager",
-    "company": "Example Company",
+    "company": "Apple",
     "expectedLevel": "strong_match",
-    "notes": "Beijing, AI product direction, salary, skills, and language requirements all match the target profile."
+    "notes": "Strong match for AI-powered workflows, global collaboration, English communication, and platform product experience."
   },
   {
-    "title": "Senior Product Manager - Data Intelligence",
-    "company": "Enterprise SaaS Lab",
+    "title": "AI Innovation Product Manager",
+    "company": "AIIB",
+    "expectedLevel": "strong_match",
+    "notes": "Strong match for enterprise AI, workflow transformation, English collaboration, and compliance-aware platform product experience."
+  },
+  {
+    "title": "AI资深产品经理 - Agent方向",
+    "company": "百度",
+    "expectedLevel": "strong_match",
+    "notes": "Strong match for Agent, RAG, Prompt Engineering, technical boundaries, and productization."
+  },
+  {
+    "title": "千帆AI产品经理",
+    "company": "百度",
+    "expectedLevel": "strong_match",
+    "notes": "Strong match for enterprise AI platform, PaaS/tool ecosystem, and developer/enterprise workflows."
+  },
+  {
+    "title": "AI Application Product Manager (B2B)",
+    "company": "美团 / Sankuai",
     "expectedLevel": "possible_match",
-    "notes": "Good Beijing enterprise/data product fit, but compensation starts below the target range and should be validated."
+    "notes": "Good B2B AI application and workflow optimization fit, but workload intensity and business pressure should be validated."
   },
   {
-    "title": "Operations Product Manager",
-    "company": "Generic Internet Platform",
-    "expectedLevel": "low_priority",
-    "notes": "Shanghai location, weaker AI fit, skill gaps, lower compensation, and higher AI replacement/workload risk."
-  },
-  {
-    "title": "Data Agent Product Manager",
-    "company": "Tencent",
+    "title": "AI产品经理",
+    "company": "京东",
     "expectedLevel": "strong_match",
-    "notes": "Beijing, agent/data direction, strong skill and language fit. Salary is negotiable and should be clarified."
+    "notes": "Strong salary and AI application fit, but exact JD details should be confirmed."
+  },
+  {
+    "title": "AI产品经理 - 智能对话与AI员工",
+    "company": "字节跳动 / 抖音生活服务",
+    "expectedLevel": "possible_match",
+    "notes": "Good AI workflow and business-process transformation fit, but lower salary band and result pressure need validation."
+  },
+  {
+    "title": "产品经理 - AIGC",
+    "company": "京东",
+    "expectedLevel": "possible_match",
+    "notes": "AIGC planning and data-driven product fit, but business line and commute/location should be validated."
+  },
+  {
+    "title": "AI Agent 产品经理",
+    "company": "AutoAgents.ai / 未来式智能",
+    "expectedLevel": "possible_match",
+    "notes": "Strong Agent workflow direction, but compensation is near lower threshold and startup intensity risk is higher."
+  },
+  {
+    "title": "高级AI Agent产品经理",
+    "company": "小米",
+    "expectedLevel": "possible_match",
+    "notes": "AI Agent direction is relevant, but consumer/device ecosystem fit and compensation need validation."
+  },
+  {
+    "title": "AI智能体方向产品经理",
+    "company": "百度",
+    "expectedLevel": "possible_match",
+    "notes": "Agent orchestration and tool calling are relevant, but exact product direction and technical depth should be validated."
+  },
+  {
+    "title": "C端产品经理 - AIGC",
+    "company": "百度",
+    "expectedLevel": "possible_match",
+    "notes": "AIGC direction is relevant, but consumer product fit is weaker than B2B/platform direction."
+  },
+  {
+    "title": "AI产品经理",
+    "company": "百度",
+    "expectedLevel": "possible_match",
+    "notes": "General AI product fit, but direction needs clarification to ensure it is application/platform rather than algorithm/model strategy."
+  },
+  {
+    "title": "AI产品经理 - AIGC方向",
+    "company": "美团",
+    "expectedLevel": "possible_match",
+    "notes": "AIGC direction is relevant, but salary low end and workload intensity should be validated."
+  },
+  {
+    "title": "AI Native Device SW Product Manager",
+    "company": "Lenovo",
+    "expectedLevel": "possible_match",
+    "notes": "Good English/global and AI software product fit, but device ecosystem fit and official JD availability need validation."
+  },
+  {
+    "title": "AI Product Manager in China",
+    "company": "LaowaiCareer / 未明确公司",
+    "expectedLevel": "possible_match",
+    "notes": "English and AI product lifecycle fit, but employer quality and official JD must be confirmed."
+  },
+  {
+    "title": "AIGC Platform Product Manager",
+    "company": "腾讯",
+    "expectedLevel": "possible_match",
+    "notes": "AIGC platform direction is relevant, but third-party listing and business line should be verified."
+  },
+  {
+    "title": "AI产品经理 - Coze",
+    "company": "字节跳动 / Coze",
+    "expectedLevel": "possible_match",
+    "notes": "Agent platform direction is relevant, but listing appears campus-related and should be verified for social hiring."
+  },
+  {
+    "title": "Agent 大模型产品经理",
+    "company": "月之暗面",
+    "expectedLevel": "possible_match",
+    "notes": "Agent/LLM application direction is relevant, but AI-native startup intensity and fit should be assessed carefully."
   }
 ]

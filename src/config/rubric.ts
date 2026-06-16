@@ -29,7 +29,11 @@ export const defaultRubric: ScoringRubric = {
     "machine learning",
     "data intelligence",
     "workflow automation",
-    "knowledge base"
+    "knowledge base",
+    "copilot",
+    "anomaly detection",
+    "semantic analysis",
+    "ai-assisted"
   ],
   productKeywords: [
     "product",
@@ -40,7 +44,9 @@ export const defaultRubric: ScoringRubric = {
     "go-to-market",
     "stakeholder",
     "business",
-    "enterprise"
+    "enterprise",
+    "platform",
+    "metrics"
   ],
   riskKeywords: [
     "996",
@@ -56,9 +62,12 @@ export const defaultRubric: ScoringRubric = {
     "product",
     "data workflow",
     "monitoring",
+    "observability",
     "scheduling",
     "cross-functional",
-    "enterprise"
+    "enterprise",
+    "execution platform",
+    "ai-assisted workflow"
   ],
   skillKeywords: [
     "llm",
@@ -74,8 +83,12 @@ export const defaultRubric: ScoringRubric = {
     "typescript",
     "api",
     "monitoring",
+    "observability",
     "scheduling",
-    "enterprise product"
+    "enterprise product",
+    "bi",
+    "concurrency",
+    "throttling"
   ],
   languageKeywords: [
     "english",

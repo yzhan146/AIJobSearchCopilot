@@ -73,16 +73,18 @@ async function main(): Promise<void> {
     );
     const score = scoreJob(structuredResult.signals, defaultRubric);
     const recommendationResult = await withRateLimitRetry(() =>
-      generateRecommendationsWithLlm(job, profile, structuredResult.signals, score, llmClient)
+      generateRecommendationsWithLlm(job, profile, structuredResult.signals, score, [], llmClient)
     );
     const hybridAnalysis: JobAnalysis = {
       job,
       signals: structuredResult.signals,
       score,
       recommendation: recommendationResult.recommendation,
+      retrievedEvidence: [],
       metadata: {
         signalSource: structuredResult.source,
         recommendationSource: recommendationResult.source,
+        retrievalSource: "local_keyword",
         llmProvider: llmClient.provider,
         llmModel: llmClient.model
       }

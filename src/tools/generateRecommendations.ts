@@ -2,7 +2,9 @@ import type {
   CandidateProfile,
   JobRecommendation,
   JobSignals,
+  ProfileEvidenceCitation,
   RawJob,
+  RetrievedProfileEvidence,
   ScoreResult
 } from "../schemas.js";
 
@@ -13,18 +15,30 @@ export function generateRecommendations(
   job: RawJob,
   profile: CandidateProfile,
   signals: JobSignals,
-  score: ScoreResult
+  score: ScoreResult,
+  retrievedEvidence: RetrievedProfileEvidence[] = []
 ): JobRecommendation {
   const resumeFocusPoints = buildResumeFocusPoints(profile, signals);
+  const evidenceCitations = buildEvidenceCitations(retrievedEvidence);
+
+  if (evidenceCitations.length > 0) {
+    resumeFocusPoints.push(
+      `Cited evidence to use: ${evidenceCitations
+        .map((citation) => `${citation.title} [${citation.id}]`)
+        .join("; ")}.`
+    );
+  }
 
   return {
     resumeFocusPoints,
-    outreachMessage: buildOutreachMessage(job, signals, score),
+    outreachMessage: buildOutreachMessage(job, signals, score, evidenceCitations),
     interviewTalkingPoints: [
       `Explain why ${signals.aiSignals.join(", ") || "AI application work"} matters for this role.`,
       "Connect engineering-product experience to cross-functional AI product delivery.",
+      ...buildEvidenceTalkingPoints(evidenceCitations),
       "Describe how deterministic scoring and LLM generation are separated in this demo."
-    ]
+    ],
+    evidenceCitations
   };
 }
 
@@ -64,17 +78,43 @@ function buildResumeFocusPoints(
 function buildOutreachMessage(
   job: RawJob,
   signals: JobSignals,
-  score: ScoreResult
+  score: ScoreResult,
+  evidenceCitations: ProfileEvidenceCitation[]
 ): string {
-  // Keep outreach short and safe for the demo. Real personalization can be added
-  // after RAG provides cited evidence from the candidate profile.
+  // Keep outreach short and safe for the demo while still grounding one sentence
+  // in retrieved profile evidence.
   const aiContext = signals.aiSignals.length > 0
     ? `especially the ${signals.aiSignals.slice(0, 3).join(", ")} direction`
     : "especially the AI product direction";
+  const evidenceContext = evidenceCitations[0]
+    ? ` One relevant background point is ${evidenceCitations[0].title.toLowerCase()}.`
+    : "";
 
   return [
     `Hi, I am interested in the ${job.title} role at ${job.company}, ${aiContext}.`,
-    "My background combines engineering and product experience, so I can work with technical teams while keeping user and business outcomes clear.",
+    `My background combines engineering and product experience, so I can work with technical teams while keeping user and business outcomes clear.${evidenceContext}`,
     `Based on the role signals, this looks like a ${score.level.replace("_", " ")} for my target direction.`
   ].join(" ");
+}
+
+function buildEvidenceCitations(
+  retrievedEvidence: RetrievedProfileEvidence[]
+): ProfileEvidenceCitation[] {
+  return retrievedEvidence.map((evidence) => ({
+    id: evidence.id,
+    title: evidence.title,
+    quote: evidence.content,
+    relevanceReason: evidence.relevanceReason
+  }));
+}
+
+function buildEvidenceTalkingPoints(
+  evidenceCitations: ProfileEvidenceCitation[]
+): string[] {
+  return evidenceCitations
+    .slice(0, 2)
+    .map(
+      (citation) =>
+        `Use ${citation.title} [${citation.id}] as cited proof: ${citation.relevanceReason}`
+    );
 }
