@@ -10,7 +10,7 @@ Milestone 4 is complete as a local prototype. It extends the Milestone 3 tool re
 | Planner CLI | `src/plannerDemo.ts` | Runs planner demos with deterministic mock LLM support |
 | Approval gate | `src/agent/approvalPolicy.ts` and external-action tools | Blocks `apply_to_job` and `send_message` unless approved |
 | Trace output | `src/agent/trace.ts` | Writes tool execution entries to `exports/tool-call-trace.json` |
-| Web UI | `exports/web/index.html` and `web_server.js` | Lets the user inspect traces and record approvals |
+| Web UI | `web/index.html` and `web_server.js` | Lets the user inspect traces and record approvals |
 | Tests | `src/tests/runPlannerTests.ts` | Verifies shortlist behavior and approval-blocked apply behavior |
 
 ## Planner behavior
@@ -75,4 +75,3 @@ Milestone 5 should focus on hardening rather than more demo surface:
 3. A fuller approval queue that can resume approved pending actions.
 4. Real provider testing with OpenAI/Gemini/Groq while keeping mock tests in CI.
 5. Push the repository to GitHub for interview visibility and cross-device use.
-

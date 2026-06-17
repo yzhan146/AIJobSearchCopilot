@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Job Search Copilot — Trace Viewer</title>
+  <style>
+    body { font-family: system-ui, Arial; margin: 16px; }
+    .entry { border: 1px solid #ddd; padding: 8px; margin: 8px 0; border-radius: 6px; }
+    .meta { color: #666; font-size: 12px; }
+    button { margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Tool Call Trace Viewer</h1>
+  <p>Loads <code>exports/tool-call-trace.json</code> and shows tool calls. Approve external actions to simulate human-in-the-loop.</p>
+  <div id="status"></div>
+  <div id="entries"></div>
+
+  <script>
+    async function loadTrace(){
+      const status = document.getElementById('status');
+      try{
+        const res = await fetch('/tool-call-trace.json');
+        if(!res.ok) throw new Error('No trace found');
+        const json = await res.json();
+        renderEntries(json.entries || []);
+        status.textContent = `Loaded trace generatedAt: ${json.generatedAt}`;
+      }catch(e){
+        status.textContent = 'Failed to load trace: '+e.message;
+      }
+    }
+
+    function renderEntries(entries){
+      const container = document.getElementById('entries');
+      container.innerHTML = '';
+      for(const entry of entries){
+        const div = document.createElement('div');
+        div.className = 'entry';
+        div.innerHTML = `
+          <div><strong>${entry.tool}</strong> — <span class="meta">${entry.inputSummary}</span></div>
+          <div class="meta">${entry.outputSummary} · ${entry.durationMs}ms · success: ${entry.success} · sideEffect: ${entry.sideEffectLevel} · approval: ${entry.approval}</div>
+          ${entry.actionId ? `<div class="meta">actionId: ${entry.actionId}</div>` : ''}
+        `;
+        if(entry.approval === 'human_required'){
+          const btn = document.createElement('button');
+          btn.textContent = 'Approve';
+          btn.onclick = async ()=>{
+            btn.disabled = true;
+            btn.textContent = 'Approving...';
+            try{
+              const r = await fetch('/approve', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({
+                  actionId: entry.actionId,
+                  tool: entry.tool,
+                  inputSummary: entry.inputSummary
+                })
+              });
+              if(!r.ok) throw new Error(await r.text());
+              btn.textContent = 'Approved';
+            }catch(err){
+              btn.textContent = 'Approve (error)';
+              btn.disabled = false;
+              alert('Approve failed: '+err);
+            }
+          };
+          div.appendChild(btn);
+        }
+        container.appendChild(div);
+      }
+    }
+
+    loadTrace();
+  </script>
+</body>
+</html>

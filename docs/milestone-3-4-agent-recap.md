@@ -34,7 +34,7 @@ Milestone 4 added the first planner and approval demo:
 | Planner | `src/agent/planner.ts` | Converts a user goal into a tool plan and executes validated steps |
 | Planner CLI | `src/plannerDemo.ts` | Runs shortlist/apply planner demos with mock LLM support |
 | Planner tests | `src/tests/runPlannerTests.ts` | Verifies shortlist output and approval-blocked apply behavior |
-| Web UI | `exports/web/index.html` | Shows traces and supports simple approval actions |
+| Web UI | `web/index.html` | Shows traces and supports simple approval actions |
 | Web server | `web_server.js` | Serves exports, traces, and approval records |
 
 The planner supports a mock LLM path for deterministic local runs. It asks the LLM for a JSON plan, validates that each tool exists in the registry, normalizes `jobIndex` into the job object expected by tools, and falls back to the deterministic workflow when the plan is not suitable.
@@ -94,6 +94,7 @@ The most useful files to inspect are:
 exports/local-mvp-results.json
 exports/tool-call-trace.json
 exports/approvals.json
+exports/pending-approvals.json
 ```
 
 ## Interview-ready explanation
@@ -109,3 +110,4 @@ Key points to emphasize:
 - **Human approval**: risky external actions require explicit user approval.
 - **Traceability**: tool-call traces explain what happened and where errors occurred.
 
+Milestone 5 extends this with `src/agent/plannerValidation.ts`, one-shot LLM plan repair, action-specific approval IDs, and tests for invalid plan fallback and approved external-action execution. See `docs/milestone-5-agent-hardening.md`.

@@ -25,9 +25,9 @@ The demo is designed to explore practical AI application patterns:
 
 ## Status
 
-Milestones 1-4 are implemented as a local TypeScript AI workflow and agent prototype. The main product workflow is now **hybrid**: LLM structured extraction, schema validation, deterministic scoring, RAG-backed profile evidence, LLM recommendation generation, tool-call tracing, and human approval boundaries for external actions.
+Milestones 1-5 are implemented as a local TypeScript AI workflow and agent prototype. The main product workflow is now **hybrid**: LLM structured extraction, schema validation, deterministic scoring, RAG-backed profile evidence, LLM recommendation generation, tool-call tracing, and human approval boundaries for external actions.
 
-Milestone 3 introduced the explicit tool registry and traceable tool execution. Milestone 4 added an LLM planner prototype, approval-gated external action demos, planner tests, and a minimal web UI for reviewing traces and approvals.
+Milestone 3 introduced the explicit tool registry and traceable tool execution. Milestone 4 added an LLM planner prototype, approval-gated external action demos, planner tests, and a minimal web UI for reviewing traces and approvals. Milestone 5 hardens the agent with per-tool planner validation, one-shot plan repair, action-specific approval IDs, pending approval records, and broader planner tests.
 
 See the Milestone 1 recap:
 
@@ -48,6 +48,7 @@ docs/milestone-3-outline.md
 docs/milestone-3-tool-calling-recap.md
 docs/milestone-4-plan.md
 docs/milestone-3-4-agent-recap.md
+docs/milestone-5-agent-hardening.md
 ```
 
 ## Quick start
@@ -159,6 +160,7 @@ It writes local generated files to `exports/`:
 - `local-mvp-results.csv`
 - `tool-call-trace.json`
 - `approvals.json` when using the approval UI
+- `pending-approvals.json` when external actions are blocked
 - `rag-retrieval-evaluation.json`
 - `rag-retrieval-evaluation.md`
 
@@ -185,7 +187,8 @@ This workflow intentionally separates deterministic code from LLM/tool-facing bo
 | RAG | `retrieveProfileEvidence()` retrieves cited chunks from `data/profile_knowledge.json` | Keep retrieval inspectable and evaluate recall before improving embeddings |
 | Function calling | Core capabilities are exposed through `src/agent/toolRegistry.ts` | Tools have typed inputs, schemas, output summaries, and side-effect metadata |
 | Agent workflow | `runLocalMvp()` executes a fixed plan; `runPlannerGoal()` can execute an LLM-generated plan | Start reliable and auditable, then add dynamic planning under validation |
-| Human approval | External actions are listed in `src/agent/approvalPolicy.ts` and can be approved through `exports/approvals.json` | Applying, messaging, or resume upload should require explicit user approval |
+| Planner validation | `src/agent/plannerValidation.ts` validates LLM plans before execution | Treat LLM output as untrusted input; validate and repair once before falling back |
+| Human approval | External actions are listed in `src/agent/approvalPolicy.ts` and approved by action ID through `exports/approvals.json` | Applying, messaging, or resume upload should require explicit user approval |
 
 ## Learning checkpoint: Milestone 1.1
 

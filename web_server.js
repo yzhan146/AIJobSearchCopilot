@@ -4,11 +4,23 @@ import path from 'node:path';
 
 const PORT = process.env.WEB_PORT ? Number(process.env.WEB_PORT) : 8080;
 const PUBLIC_DIR = path.join(process.cwd(), 'exports');
-const WEB_DIR = path.join(PUBLIC_DIR, 'web');
+const WEB_DIR = path.join(process.cwd(), 'web');
 
 function sendJson(res, obj){
   res.setHeader('Content-Type','application/json');
   res.end(JSON.stringify(obj));
+}
+
+function readJsonArray(filePath){
+  if (!fs.existsSync(filePath)) return [];
+  const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  if (!Array.isArray(parsed)) throw new Error(`${filePath} must contain a JSON array`);
+  return parsed;
+}
+
+function writeJsonArray(filePath, list){
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf8');
 }
 
 const server = http.createServer((req, res) => {
@@ -37,9 +49,13 @@ const server = http.createServer((req, res) => {
 
     if (pathname === '/approvals.json'){
       const approvalsPath = path.join(PUBLIC_DIR, 'approvals.json');
-      if (!fs.existsSync(approvalsPath)) { sendJson(res, []); return; }
-      const content = fs.readFileSync(approvalsPath, 'utf8');
-      sendJson(res, JSON.parse(content));
+      sendJson(res, readJsonArray(approvalsPath));
+      return;
+    }
+
+    if (pathname === '/pending-approvals.json'){
+      const pendingPath = path.join(PUBLIC_DIR, 'pending-approvals.json');
+      sendJson(res, readJsonArray(pendingPath));
       return;
     }
 
@@ -49,10 +65,29 @@ const server = http.createServer((req, res) => {
       req.on('end', () => {
         try{
           const payload = JSON.parse(body || '{}');
+          const actionId = payload.actionId || payload.id;
+          if (!actionId && !payload.tool && !payload.name) {
+            res.statusCode = 400;
+            res.end('Approval requires actionId or tool');
+            return;
+          }
+
           const approvalsPath = path.join(PUBLIC_DIR, 'approvals.json');
-          const list = fs.existsSync(approvalsPath) ? JSON.parse(fs.readFileSync(approvalsPath,'utf8')) : [];
-          list.push({ ...payload, approvedAt: new Date().toISOString() });
-          fs.writeFileSync(approvalsPath, JSON.stringify(list, null, 2), 'utf8');
+          const list = readJsonArray(approvalsPath);
+          const approval = {
+            ...payload,
+            actionId,
+            tool: payload.tool || payload.name,
+            status: 'approved',
+            approvedAt: new Date().toISOString()
+          };
+          const next = list.filter((item) => item.actionId !== actionId);
+          next.push(approval);
+          writeJsonArray(approvalsPath, next);
+
+          const pendingPath = path.join(PUBLIC_DIR, 'pending-approvals.json');
+          const pending = readJsonArray(pendingPath).filter((item) => item.actionId !== actionId);
+          writeJsonArray(pendingPath, pending);
           sendJson(res, { ok: true });
         }catch(e){ res.statusCode = 400; res.end(String(e)); }
       });

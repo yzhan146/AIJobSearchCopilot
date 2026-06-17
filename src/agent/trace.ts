@@ -10,6 +10,7 @@ export type ToolCallTraceEntry = {
   success: boolean;
   sideEffectLevel: ToolSideEffectLevel;
   approval: ToolApprovalPolicy;
+  actionId?: string;
   error?: string;
 };
 

@@ -20,7 +20,12 @@ import {
   type RecommendationGenerationResult
 } from "../tools/generateRecommendationsWithLlm.js";
 import { scoreJob } from "../tools/scoreJob.js";
-import { assertToolApproval, type ToolApprovalPolicy, type ToolSideEffectLevel } from "./approvalPolicy.js";
+import {
+  ApprovalRequiredError,
+  assertToolApproval,
+  type ToolApprovalPolicy,
+  type ToolSideEffectLevel
+} from "./approvalPolicy.js";
 import type { ToolCallTraceEntry } from "./trace.js";
 
 type JsonSchema = {
@@ -198,10 +203,10 @@ export const toolRegistry: ToolRegistry = {
     outputSchema: objectSchema("Application request status.", ["queued"]),
     sideEffectLevel: "external_action",
     approval: "human_required",
-    execute: (_input, _context) => {
-      // In demo, external actions are blocked by policy and should not run automatically.
-      throw new Error("Human approval required for apply_to_job.");
-    },
+    execute: (input, _context) => ({
+      queued: true,
+      message: `Approved application queued for ${summarizeJob(input.job)}.`
+    }),
     summarizeInput: ({ job }) => summarizeJob(job),
     summarizeOutput: (output) => `queued: ${ (output as any)?.queued ?? false }`
   },
@@ -212,9 +217,10 @@ export const toolRegistry: ToolRegistry = {
     outputSchema: objectSchema("Message enqueue status.", ["queued"]),
     sideEffectLevel: "external_action",
     approval: "human_required",
-    execute: (_input, _context) => {
-      throw new Error("Human approval required for send_message.");
-    },
+    execute: (input, _context) => ({
+      queued: true,
+      message: `Approved message queued for ${input.recipient}.`
+    }),
     summarizeInput: ({ recipient, subject }) => `to ${recipient}: ${subject}`,
     summarizeOutput: (output) => `queued: ${ (output as any)?.queued ?? false }`
   }
@@ -227,13 +233,17 @@ export async function executeRegisteredTool<Name extends ToolName>(
   traceEntries: ToolCallTraceEntry[]
 ): Promise<ToolOutputMap[Name]> {
   const startedAt = Date.now();
+  const inputSummary = safeSummarize(() => tool.summarizeInput(input), "unavailable input summary");
   try {
-    assertToolApproval(tool.approval, tool.name);
+    assertToolApproval(tool.approval, tool.name, {
+      outputDir: context.outputDir,
+      inputSummary
+    });
     const output = await tool.execute(input, context);
     if (Array.isArray(traceEntries)) {
       traceEntries.push({
         tool: tool.name,
-        inputSummary: tool.summarizeInput(input),
+        inputSummary,
         outputSummary: tool.summarizeOutput(output),
         durationMs: Date.now() - startedAt,
         success: true,
@@ -248,12 +258,13 @@ export async function executeRegisteredTool<Name extends ToolName>(
       if (Array.isArray(traceEntries)) {
         traceEntries.push({
           tool: tool.name,
-          inputSummary: tool.summarizeInput(input),
+          inputSummary,
           outputSummary: "failed",
           durationMs: Date.now() - startedAt,
           success: false,
           sideEffectLevel: tool.sideEffectLevel,
           approval: tool.approval,
+          ...(error instanceof ApprovalRequiredError ? { actionId: error.actionId } : {}),
           error: message
         });
       }
@@ -278,4 +289,12 @@ function objectSchema(description: string, required: string[]): JsonSchema {
 
 function summarizeJob(job: RawJob): string {
   return `${job.title} at ${job.company} (${job.location})`;
+}
+
+function safeSummarize(callback: () => string, fallback: string): string {
+  try {
+    return callback();
+  } catch (_error) {
+    return fallback;
+  }
 }
