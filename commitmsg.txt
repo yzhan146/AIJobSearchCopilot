@@ -1,0 +1,3 @@
+﻿Milestone 3 & 4: tool registry, approval policy, trace logging, LLM planner prototype, approval gate, web UI, tests
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>

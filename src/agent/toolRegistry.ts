@@ -230,28 +230,36 @@ export async function executeRegisteredTool<Name extends ToolName>(
   try {
     assertToolApproval(tool.approval, tool.name);
     const output = await tool.execute(input, context);
-    traceEntries.push({
-      tool: tool.name,
-      inputSummary: tool.summarizeInput(input),
-      outputSummary: tool.summarizeOutput(output),
-      durationMs: Date.now() - startedAt,
-      success: true,
-      sideEffectLevel: tool.sideEffectLevel,
-      approval: tool.approval
-    });
+    if (Array.isArray(traceEntries)) {
+      traceEntries.push({
+        tool: tool.name,
+        inputSummary: tool.summarizeInput(input),
+        outputSummary: tool.summarizeOutput(output),
+        durationMs: Date.now() - startedAt,
+        success: true,
+        sideEffectLevel: tool.sideEffectLevel,
+        approval: tool.approval
+      });
+    }
     return output;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    traceEntries.push({
-      tool: tool.name,
-      inputSummary: tool.summarizeInput(input),
-      outputSummary: "failed",
-      durationMs: Date.now() - startedAt,
-      success: false,
-      sideEffectLevel: tool.sideEffectLevel,
-      approval: tool.approval,
-      error: message
-    });
+    try {
+      if (Array.isArray(traceEntries)) {
+        traceEntries.push({
+          tool: tool.name,
+          inputSummary: tool.summarizeInput(input),
+          outputSummary: "failed",
+          durationMs: Date.now() - startedAt,
+          success: false,
+          sideEffectLevel: tool.sideEffectLevel,
+          approval: tool.approval,
+          error: message
+        });
+      }
+    } catch (_pushErr) {
+      // ignore push errors to avoid masking original error
+    }
     throw error;
   }
 }

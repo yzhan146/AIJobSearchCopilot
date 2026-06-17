@@ -78,6 +78,17 @@ export async function runPlannerGoal(
       const llmOutput = await llmClient.generateJson({ system, user, temperature: 0, mockResponse });
       if (validatePlan(llmOutput)) {
         const plan = llmOutput as LlmPlan;
+
+        // If the plan is per-job but doesn't include jobIndex for tools that need a job,
+        // fall back to the heuristic planner so we produce per-job analyses.
+        const toolsRequiringJob = new Set(['extract_job_signals', 'retrieve_profile_evidence', 'generate_recommendation', 'apply_to_job']);
+        const planHasJobIndex = plan.plan.some((s) => (s.args && (s.args as any).jobIndex !== undefined));
+        const planUsesJobTools = plan.plan.some((s) => toolsRequiringJob.has(s.tool));
+        if (planUsesJobTools && !planHasJobIndex) {
+          // treat as unsuitable
+          throw new Error('LLM plan does not specify jobIndex for per-job tools; falling back to heuristic.');
+        }
+
         const analyses: unknown[] = [];
         let steps = 0;
         for (const step of plan.plan) {
@@ -91,19 +102,27 @@ export async function runPlannerGoal(
             continue;
           }
           try {
-            const input = (step.args ?? {}) as any;
-            const output = await executeRegisteredTool(regTool, input, context as any, traceEntries as any);
-            // if this step produced analysis-like data, collect it conservatively
-            if (toolName === 'generate_recommendation') {
-              analyses.push({ job: jobs[(input.jobIndex ?? 0)], recommendation: (output as any).recommendation });
-            }
+          const rawInput = (step.args ?? {}) as any;
+          // normalize jobIndex -> job object for tools that expect a job
+          const input = { ...rawInput } as any;
+          if (input.jobIndex !== undefined) {
+            const idx = Number(input.jobIndex) || 0;
+            input.job = jobs[idx];
+            delete input.jobIndex;
+          }
+
+          const output = await executeRegisteredTool(regTool, input, context as any, traceEntries as any);
+          // if this step produced analysis-like data, collect it conservatively
+          if (toolName === 'generate_recommendation') {
+            analyses.push({ job: input.job ?? jobs[0], recommendation: (output as any).recommendation });
+          }
           } catch (err) {
-            // Continue executing, but record failure in trace (executeRegisteredTool already did)
-            if ((step as any).tool === 'apply_to_job') {
-              // external action blocked — return that result for demo
-              const idx = Number((step as any).args?.jobIndex ?? 0) || 0;
-              return { analyses: [{ job: jobs[idx], applied: false, error: String(err) }] };
-            }
+          // Continue executing, but record failure in trace (executeRegisteredTool already did)
+          if ((step as any).tool === 'apply_to_job') {
+            // external action blocked — return that result for demo
+            const idx = Number((step as any).args?.jobIndex ?? 0) || 0;
+            return { analyses: [{ job: jobs[idx], applied: false, error: String(err) }] };
+          }
           }
         }
         return { analyses };
