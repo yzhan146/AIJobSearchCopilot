@@ -50,17 +50,18 @@ function readRequestJson(req){
 
 async function analyzeJds(payload){
   const profile = payload?.profile || {};
+  const resumeFileName = readOptionalString(profile.resumeFileName, 'profile.resumeFileName');
   const resumeText = readOptionalString(profile.resumeText, 'profile.resumeText');
   const websiteUrl = readOptionalString(profile.websiteUrl, 'profile.websiteUrl');
   const githubUrl = readOptionalString(profile.githubUrl, 'profile.githubUrl');
   const llmEnabled = isLlmEnabled();
-  const profileText = [resumeText, websiteUrl, githubUrl].filter(Boolean).join('\n').toLowerCase();
+  const profileText = [resumeFileName, resumeText, websiteUrl, githubUrl].filter(Boolean).join('\n').toLowerCase();
 
-  if (!resumeText.trim()) {
-    throw new Error('Resume is required. Personal website and GitHub are optional background sources.');
+  if (!resumeFileName.trim()) {
+    throw new Error('Resume File is required. Resume text, personal website, and GitHub are optional background sources.');
   }
 
-  const unknownProfileKeys = Object.keys(profile).filter((key) => !['resumeText', 'websiteUrl', 'githubUrl'].includes(key));
+  const unknownProfileKeys = Object.keys(profile).filter((key) => !['resumeFileName', 'resumeText', 'websiteUrl', 'githubUrl'].includes(key));
   if (unknownProfileKeys.length > 0) {
     throw new Error(`Unsupported profile fields: ${unknownProfileKeys.join(', ')}. Only resume, personal website, and GitHub are supported.`);
   }

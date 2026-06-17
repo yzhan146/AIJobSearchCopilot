@@ -25,14 +25,15 @@
 
 | 输入类型 | 说明 | 是否必需 |
 |---|---|---|
-| 简历 | 用户上传自己的简历文件或粘贴简历文本 | 必需 |
+| 简历文件 | 用户上传自己的简历文件 | 必需 |
+| 简历文本 | 用户粘贴补充简历文本、portfolio summary 或项目 bullet | 可选 |
 | 个人网站 | 用户填写个人网站 URL，例如 portfolio / blog / project page | 可选 |
 | GitHub | 用户填写 GitHub profile 或 repo URL | 可选 |
 
 明确限制：
 
 - **不支持**除简历、个人网站、GitHub 以外的用户背景提交方式。
-- 简历是必填项；个人网站和 GitHub 只是可选补充项。
+- 只有简历文件是必填项；简历文本、个人网站和 GitHub 都是可选补充项。
 - 不支持上传无关文件，例如证书合集、聊天记录、作品截图包等。
 - 不支持无限制爬取外部网站；个人网站和 GitHub 只作为用户明确提供的背景来源。
 
@@ -105,7 +106,7 @@ JD 输入方式：
 ## 5. 产品原则
 
 1. **结论先行**：先告诉用户 10 个 JD 里哪些成功率最高，再解释原因。
-2. **输入克制**：简历必填，个人网站和 GitHub 可选；单批次最多 10 个 JD，不做复杂表单。
+2. **输入克制**：只有简历文件必填，简历文本、个人网站和 GitHub 可选；单批次最多 10 个 JD，不做复杂表单。
 3. **AI 可解释**：每个排序结果都要能看到匹配项、缺口、风险和证据。
 4. **建议可执行**：简历建议必须具体到 skill、经历、项目表述和优先级。
 5. **简单现代**：UI 风格应平面化、简洁、现代，减少装饰和认知负担。
@@ -139,7 +140,8 @@ Approval Center
 
 核心内容：
 
-- 简历上传或简历文本粘贴，必填并标红色星号
+- 简历文件上传，必填并标红色星号
+- 简历文本粘贴，标注 optional supplement
 - 个人网站 URL 输入，标注 optional
 - GitHub profile/repo URL 输入，标注 optional
 - 背景资料解析状态
@@ -147,7 +149,7 @@ Approval Center
 
 验收标准：
 
-- 用户清楚知道简历必填，个人网站和 GitHub 可选。
+- 用户清楚知道只有简历文件必填，简历文本、个人网站和 GitHub 都是可选。
 - 用户不需要填写复杂问卷也能开始分析。
 - 系统能展示已成功读取哪些背景来源。
 
@@ -331,7 +333,8 @@ Approval Center
 
 ```text
 用户进入 Profile Setup
- -> 上传简历 / 粘贴简历文本（必填）
+ -> 上传简历文件（必填）
+ -> 可选粘贴补充简历文本
  -> 可选填写个人网站
  -> 可选填写 GitHub
  -> 系统解析用户背景
@@ -389,7 +392,8 @@ Agent 准备 apply_to_job
 
 必须包含：
 
-- 简历上传 / 简历文本粘贴区域
+- 简历文件上传区域，必填
+- 简历文本粘贴区域，可选
 - 个人网站 URL 输入
 - GitHub URL 输入
 - 已解析背景摘要
@@ -399,7 +403,7 @@ Agent 准备 apply_to_job
 验收标准：
 
 - 用户能在 1 分钟内完成背景资料输入。
-- 简历为空时不能继续分析。
+- 未上传简历文件时不能继续分析。
 - 用户清楚知道哪些输入方式支持，哪些不支持。
 - 系统能展示用户背景资料是否已成功解析。
 
@@ -530,7 +534,8 @@ Agent 准备 apply_to_job
 
 | 数据 | 来源 |
 |---|---|
-| 用户简历 | 用户上传文件或粘贴文本，必填 |
+| 用户简历文件 | 用户上传文件，必填 |
+| 用户简历文本 | 用户粘贴补充文本，可选 |
 | 个人网站 | 用户填写 URL，可选 |
 | GitHub | 用户填写 profile/repo URL，可选 |
 | JD 输入 | 用户粘贴 JD 文本或 URL，单批次最多 10 个；URL-only 依赖 LLM 启用 |
@@ -568,7 +573,7 @@ UI 应该简单、直接、平面化，整体设计风格参考 `marshallzzz.com
 
 ### P0
 
-1. Profile Setup：简历必填，个人网站和 GitHub 可选。
+1. Profile Setup：只有简历文件必填，简历文本、个人网站和 GitHub 可选。
 2. JD Submission：支持最多 10 个 JD。
 3. Ranking Dashboard：按成功率排序展示所有 JD。
 4. Job Shortlist：展示 JD 卡片、成功率和排序理由。
@@ -609,7 +614,7 @@ UI 应该简单、直接、平面化，整体设计风格参考 `marshallzzz.com
 | 指标 | 目标 |
 |---|---|
 | 用户完成背景资料输入 | 小于 1 分钟 |
-| Profile 必填校验 | 简历为空时明确提示，不允许分析 |
+| Profile 必填校验 | 未上传简历文件时明确提示，不允许分析 |
 | 用户提交 JD 数量 | 支持 1-10 个，超过 10 个时明确拦截 |
 | JD URL-only 判断 | LLM 启用时允许，LLM 未启用时提示手动粘贴 JD |
 | 用户找到最高成功率 JD 的时间 | 小于 10 秒 |
@@ -624,8 +629,8 @@ UI 应该简单、直接、平面化，整体设计风格参考 `marshallzzz.com
 
 可以这样讲：
 
-> After completing the backend agent workflow, I refined the UI PRD around a tighter user journey: users must provide a resume, can optionally add a personal website or GitHub, submit up to 10 JDs, and receive a success-probability ranking with clear reasons. JD URL-only input is supported only when LLM-backed extraction is enabled; otherwise users paste JD title and content manually. For every JD, the product generates concrete resume improvement suggestions.
+> After completing the backend agent workflow, I refined the UI PRD around a tighter user journey: users must upload a resume file, can optionally add resume text, a personal website, or GitHub, submit up to 10 JDs, and receive a success-probability ranking with clear reasons. JD URL-only input is supported only when LLM-backed extraction is enabled; otherwise users paste JD title and content manually. For every JD, the product generates concrete resume improvement suggestions.
 
 中文版本：
 
-> 后端 Agent workflow 跑通以后，我把 UI PRD 收敛成一个更清晰的产品流程：用户必须提供简历，可以选择补充个人网站或 GitHub，然后提交最多 10 个 JD，系统按成功率排序，并解释每个 JD 为什么排在这个位置。JD URL-only 只有在 LLM-backed extraction 启用时才允许；否则用户需要手动粘贴 JD 标题和内容。对每个 JD，产品都会给出具体简历修改建议。
+> 后端 Agent workflow 跑通以后，我把 UI PRD 收敛成一个更清晰的产品流程：用户必须上传简历文件，可以选择补充简历文本、个人网站或 GitHub，然后提交最多 10 个 JD，系统按成功率排序，并解释每个 JD 为什么排在这个位置。JD URL-only 只有在 LLM-backed extraction 启用时才允许；否则用户需要手动粘贴 JD 标题和内容。对每个 JD，产品都会给出具体简历修改建议。

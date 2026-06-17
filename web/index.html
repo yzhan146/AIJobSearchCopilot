@@ -273,16 +273,16 @@
         <div class="panel-header">
           <div>
             <h2><span class="step">1</span> Profile Setup</h2>
-            <p>Resume is required. Personal website and GitHub are optional.</p>
+            <p>Only Resume File is required. Resume text, personal website, and GitHub are optional.</p>
           </div>
         </div>
 
         <label for="resumeFile">Resume file <span class="required">*</span></label>
         <input id="resumeFile" type="file" accept=".txt,.md,.csv,.json,.pdf,.doc,.docx" />
-        <div class="hint">Required. For this local prototype, plain text/markdown files work best. You can also paste resume text below.</div>
+        <div id="resumeFileStatus" class="hint">Required. For this local prototype, plain text/markdown files work best. Resume text below is optional.</div>
 
-        <label for="resumeText">Resume text <span class="required">*</span></label>
-        <textarea id="resumeText" placeholder="Paste resume, portfolio summary, or project bullets here..."></textarea>
+        <label for="resumeText">Resume text <span class="optional">optional supplement</span></label>
+        <textarea id="resumeText" placeholder="Optional: paste extra resume, portfolio summary, or project bullets here..."></textarea>
 
         <label for="websiteUrl">Personal website URL <span class="optional">optional</span></label>
         <input id="websiteUrl" placeholder="https://your-site.com" />
@@ -380,7 +380,8 @@
       analyses: [],
       selectedIndex: 0,
       llmEnabled: false,
-      llmProvider: null
+      llmProvider: null,
+      resumeFileName: ''
     };
 
     document.getElementById('resumeFile').addEventListener('change', async (event) => {
@@ -390,7 +391,9 @@
         setStatus('This prototype reads text-like resume files best. Please paste resume text if the file cannot be read.');
         return;
       }
+      state.resumeFileName = file.name;
       document.getElementById('resumeText').value = await file.text();
+      document.getElementById('resumeFileStatus').textContent = `Resume file selected: ${file.name}`;
       setStatus(`Loaded resume text from ${file.name}.`);
     });
 
@@ -422,6 +425,7 @@
 
     async function analyzeBatch() {
       const profile = {
+        resumeFileName: state.resumeFileName,
         resumeText: readInput('resumeText'),
         websiteUrl: readInput('websiteUrl'),
         githubUrl: readInput('githubUrl')
@@ -429,8 +433,8 @@
       const draftJob = readDraftJob();
       const hasDraftJob = draftJob.title || draftJob.description || draftJob.company || draftJob.location || draftJob.url;
 
-      if (!profile.resumeText) {
-        setStatus('Resume is required. Website and GitHub are optional.');
+      if (!profile.resumeFileName) {
+        setStatus('Resume File is required. Resume text, website, and GitHub are optional.');
         return;
       }
 
@@ -615,6 +619,8 @@
 
     function loadSampleData() {
       document.getElementById('resumeText').value = `AI product manager with engineering background. Built AI Job Search Copilot using LLM, RAG, function calling, MCP, TypeScript, JavaScript, React, Node, API design, SQL, prompt engineering, and agent approval workflows. Strong English communication from global company experience.`;
+      state.resumeFileName = 'sample-resume.md';
+      document.getElementById('resumeFileStatus').textContent = 'Sample resume file selected: sample-resume.md';
       document.getElementById('websiteUrl').value = 'https://marshallzzz.com';
       document.getElementById('githubUrl').value = 'https://github.com/yzhan146/AIJobSearchCopilot';
       state.jobs = [
@@ -650,6 +656,9 @@
       }
       state.jobs = [];
       state.analyses = [];
+      state.resumeFileName = '';
+      document.getElementById('resumeFile').value = '';
+      document.getElementById('resumeFileStatus').textContent = 'Required. For this local prototype, plain text/markdown files work best. Resume text below is optional.';
       renderJobList();
       document.getElementById('dashboard').style.display = 'none';
       document.getElementById('jobResults').className = 'empty';
