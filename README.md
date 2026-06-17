@@ -101,6 +101,8 @@ The demo console can run the mock planner locally, reset demo files, show trace 
 
 The main UI now follows `docs/ui-improvement-prd.md`: users provide only resume text/file, personal website, or GitHub as background sources, submit 1-10 JDs, then receive a success-probability ranking, ranking reasons, and per-JD resume improvement suggestions. Agent trace and approval demos remain available as a secondary section.
 
+The local UI analysis endpoint uses deterministic keyword/rubric logic so it works without a user-provided API key. A production deployment should keep model calls server-side and use LLMs for structured profile/JD extraction and high-quality resume rewriting, while retaining deterministic ranking validation and safety checks.
+
 Run with OpenAI:
 
 ```bash
