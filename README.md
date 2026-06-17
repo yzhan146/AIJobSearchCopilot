@@ -49,6 +49,7 @@ docs/milestone-3-tool-calling-recap.md
 docs/milestone-4-plan.md
 docs/milestone-3-4-agent-recap.md
 docs/milestone-5-agent-hardening.md
+docs/ui-improvement-prd.md
 ```
 
 ## Quick start
