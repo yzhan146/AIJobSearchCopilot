@@ -62,7 +62,21 @@ This is safer than approving a tool globally. The user approves a specific actio
 
 ```bash
 npm run test:planner
+npm run web:serve
 ```
+
+Open the local demo console:
+
+```text
+http://localhost:8080/
+```
+
+Recommended manual test:
+
+1. Click **Reset demo state**.
+2. Click **Run apply demo**. The trace should show `apply_to_job` blocked, and a pending approval should appear.
+3. Click **Approve pending action**.
+4. Click **Run apply demo** again. The approved `apply_to_job` action should now succeed as a queued mock result.
 
 The test covers:
 

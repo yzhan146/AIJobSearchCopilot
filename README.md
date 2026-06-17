@@ -90,6 +90,14 @@ View the local trace and approval demo UI:
 npm run web:serve
 ```
 
+Then open:
+
+```text
+http://localhost:8080/
+```
+
+The demo console can run the mock planner locally, reset demo files, show trace entries, list pending approvals, approve a specific `actionId`, and rerun the apply demo to verify that the approved action executes as a queued mock result.
+
 Run with OpenAI:
 
 ```bash

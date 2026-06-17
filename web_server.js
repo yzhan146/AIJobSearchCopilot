@@ -1,10 +1,14 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { exec, execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 
 const PORT = process.env.WEB_PORT ? Number(process.env.WEB_PORT) : 8080;
 const PUBLIC_DIR = path.join(process.cwd(), 'exports');
 const WEB_DIR = path.join(process.cwd(), 'web');
+const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 function sendJson(res, obj){
   res.setHeader('Content-Type','application/json');
@@ -23,7 +27,30 @@ function writeJsonArray(filePath, list){
   fs.writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf8');
 }
 
-const server = http.createServer((req, res) => {
+async function runPlannerDemo(goal){
+  const allowedGoals = new Set(['shortlist', 'apply', 'explain']);
+  if (!allowedGoals.has(goal)) {
+    throw new Error(`Unsupported demo goal: ${goal}`);
+  }
+
+  await execAsync('npm run build', { cwd: process.cwd(), timeout: 120000 });
+  return execFileAsync(
+    process.execPath,
+    ['dist/plannerDemo.js', '--llm', 'mock', '--goal', goal],
+    { cwd: process.cwd(), timeout: 120000 }
+  );
+}
+
+function resetDemoFiles(){
+  for (const fileName of ['tool-call-trace.json', 'approvals.json', 'pending-approvals.json']) {
+    const filePath = path.join(PUBLIC_DIR, fileName);
+    if (fs.existsSync(filePath)) {
+      fs.rmSync(filePath, { force: true });
+    }
+  }
+}
+
+const server = http.createServer(async (req, res) => {
   try{
     const { method, url } = req;
     const parsed = new URL(url, `http://localhost:${PORT}`);
@@ -35,6 +62,35 @@ const server = http.createServer((req, res) => {
       const content = fs.readFileSync(indexPath, 'utf8');
       res.setHeader('Content-Type', 'text/html');
       res.end(content);
+      return;
+    }
+
+    if (pathname === '/api/run-demo' && method === 'POST'){
+      const goal = parsed.searchParams.get('goal') || 'apply';
+      try {
+        const result = await runPlannerDemo(goal);
+        sendJson(res, {
+          ok: true,
+          goal,
+          stdout: result.stdout,
+          stderr: result.stderr
+        });
+      } catch (e) {
+        res.statusCode = 500;
+        sendJson(res, {
+          ok: false,
+          goal,
+          error: String(e),
+          stdout: e?.stdout,
+          stderr: e?.stderr
+        });
+      }
+      return;
+    }
+
+    if (pathname === '/api/reset-demo' && method === 'POST'){
+      resetDemoFiles();
+      sendJson(res, { ok: true });
       return;
     }
 
