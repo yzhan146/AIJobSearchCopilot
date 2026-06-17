@@ -48,15 +48,16 @@ function readRequestJson(req){
   });
 }
 
-function analyzeJds(payload){
+async function analyzeJds(payload){
   const profile = payload?.profile || {};
   const resumeText = readOptionalString(profile.resumeText, 'profile.resumeText');
   const websiteUrl = readOptionalString(profile.websiteUrl, 'profile.websiteUrl');
   const githubUrl = readOptionalString(profile.githubUrl, 'profile.githubUrl');
+  const llmEnabled = isLlmEnabled();
   const profileText = [resumeText, websiteUrl, githubUrl].filter(Boolean).join('\n').toLowerCase();
 
-  if (!profileText.trim()) {
-    throw new Error('At least one supported background source is required: resume, personal website, or GitHub.');
+  if (!resumeText.trim()) {
+    throw new Error('Resume is required. Personal website and GitHub are optional background sources.');
   }
 
   const unknownProfileKeys = Object.keys(profile).filter((key) => !['resumeText', 'websiteUrl', 'githubUrl'].includes(key));
@@ -72,7 +73,10 @@ function analyzeJds(payload){
     throw new Error('Submit between 1 and 10 JDs per analysis batch.');
   }
 
-  const analyses = payload.jobs.map((job, index) => analyzeOneJob(job, index, profileText));
+  const normalizedJobs = await Promise.all(
+    payload.jobs.map((job, index) => normalizeJobInput(job, index, llmEnabled))
+  );
+  const analyses = normalizedJobs.map((job, index) => analyzeOneJob(job, index, profileText));
   analyses.sort((a, b) => b.successProbability - a.successProbability);
   analyses.forEach((analysis, index) => {
     analysis.rank = index + 1;
@@ -101,6 +105,72 @@ function analyzeJds(payload){
   fs.mkdirSync(PUBLIC_DIR, { recursive: true });
   fs.writeFileSync(path.join(PUBLIC_DIR, 'ui-analysis-results.json'), JSON.stringify(result, null, 2), 'utf8');
   return result;
+}
+
+async function normalizeJobInput(rawJob, index, llmEnabled){
+  if (!rawJob || typeof rawJob !== 'object') {
+    throw new Error(`jobs[${index}] must be an object.`);
+  }
+
+  const title = readOptionalString(rawJob.title, `jobs[${index}].title`);
+  const company = readOptionalString(rawJob.company, `jobs[${index}].company`);
+  const location = readOptionalString(rawJob.location, `jobs[${index}].location`);
+  const url = readOptionalString(rawJob.url, `jobs[${index}].url`);
+  const description = readOptionalString(rawJob.description, `jobs[${index}].description`);
+
+  if (!url && (!title || !description)) {
+    throw new Error(`jobs[${index}] requires title and JD text unless a JD URL is provided.`);
+  }
+
+  if (url && (!title || !description)) {
+    if (!llmEnabled) {
+      throw new Error(`jobs[${index}] has a JD URL, but LLM is not enabled. Paste the JD title and content manually, or enable LLM-backed URL extraction.`);
+    }
+
+    const fetched = await fetchJobDescriptionFromUrl(url);
+    return {
+      title: title || fetched.title || `JD from ${new URL(url).hostname}`,
+      company: company || fetched.company || 'Unknown company',
+      location: location || 'Unknown location',
+      url,
+      description: description || fetched.description
+    };
+  }
+
+  return { title, company, location, url, description };
+}
+
+async function fetchJobDescriptionFromUrl(url){
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'AIJobSearchCopilot/0.1 local UI prototype'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch JD URL (${response.status}). Paste JD content manually.`);
+  }
+
+  const html = await response.text();
+  const title = (html.match(/<title[^>]*>(.*?)<\/title>/is)?.[1] || '').replace(/\s+/g, ' ').trim();
+  const text = html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (text.length < 80) {
+    throw new Error('Fetched JD URL did not contain enough readable text. Paste JD content manually.');
+  }
+
+  return {
+    title,
+    company: '',
+    description: text.slice(0, 8000)
+  };
 }
 
 function analyzeOneJob(rawJob, index, profileText){
@@ -221,6 +291,11 @@ function readOptionalString(value, fieldName){
   return value.trim();
 }
 
+function isLlmEnabled(){
+  const provider = String(process.env.LLM_PROVIDER || '').trim().toLowerCase();
+  return Boolean(provider && provider !== 'none' && provider !== 'false' && provider !== 'mock');
+}
+
 async function runPlannerDemo(goal){
   const allowedGoals = new Set(['shortlist', 'apply', 'explain']);
   if (!allowedGoals.has(goal)) {
@@ -259,10 +334,18 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (pathname === '/api/config'){
+      sendJson(res, {
+        llmEnabled: isLlmEnabled(),
+        llmProvider: process.env.LLM_PROVIDER || null
+      });
+      return;
+    }
+
     if (pathname === '/api/analyze-jds' && method === 'POST'){
       try {
         const payload = await readRequestJson(req);
-        sendJson(res, analyzeJds(payload));
+        sendJson(res, await analyzeJds(payload));
       } catch (error) {
         res.statusCode = 400;
         sendJson(res, { ok: false, error: String(error) });

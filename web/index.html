@@ -54,6 +54,13 @@
       margin: 14px 0 6px;
       text-transform: uppercase;
     }
+    .required { color: var(--red); }
+    .optional {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: none;
+    }
     input, textarea {
       background: #fffdfa;
       border: 1px solid var(--line);
@@ -128,6 +135,10 @@
       margin-top: 12px;
       padding: 10px 12px;
     }
+    .hint.warning {
+      background: #fff7ed;
+      color: #9a3412;
+    }
     .muted { color: var(--muted); }
     .row { display: flex; flex-wrap: wrap; gap: 10px; }
     .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
@@ -183,6 +194,17 @@
     .job-card:hover, .job-card.active {
       border-color: var(--ink);
       transform: translateY(-1px);
+    }
+    .advice-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      margin-top: 14px;
+      padding: 18px;
+    }
+    .advice-card.active {
+      border-color: var(--ink);
+      box-shadow: inset 0 0 0 1px var(--ink);
     }
     .score {
       align-items: center;
@@ -251,21 +273,21 @@
         <div class="panel-header">
           <div>
             <h2><span class="step">1</span> Profile Setup</h2>
-            <p>Only resume, personal website, and GitHub are supported.</p>
+            <p>Resume is required. Personal website and GitHub are optional.</p>
           </div>
         </div>
 
-        <label for="resumeFile">Resume file</label>
+        <label for="resumeFile">Resume file <span class="required">*</span></label>
         <input id="resumeFile" type="file" accept=".txt,.md,.csv,.json,.pdf,.doc,.docx" />
-        <div class="hint">For this local prototype, plain text/markdown files work best. You can also paste resume text below.</div>
+        <div class="hint">Required. For this local prototype, plain text/markdown files work best. You can also paste resume text below.</div>
 
-        <label for="resumeText">Resume text</label>
+        <label for="resumeText">Resume text <span class="required">*</span></label>
         <textarea id="resumeText" placeholder="Paste resume, portfolio summary, or project bullets here..."></textarea>
 
-        <label for="websiteUrl">Personal website URL</label>
+        <label for="websiteUrl">Personal website URL <span class="optional">optional</span></label>
         <input id="websiteUrl" placeholder="https://your-site.com" />
 
-        <label for="githubUrl">GitHub URL</label>
+        <label for="githubUrl">GitHub URL <span class="optional">optional</span></label>
         <input id="githubUrl" placeholder="https://github.com/username or repo" />
       </div>
 
@@ -273,12 +295,13 @@
         <div class="panel-header">
           <div>
             <h2><span class="step">2</span> JD Submission</h2>
-            <p>Add 1-10 job descriptions. The UI blocks anything above 10.</p>
+            <p>Add 1-10 job descriptions. JD URL can stand alone only when LLM-backed extraction is enabled.</p>
           </div>
           <span id="jdCount" class="count-pill">0 / 10</span>
         </div>
+        <div id="llmStatus" class="hint warning">Checking LLM status...</div>
 
-        <label for="jobTitle">JD title</label>
+        <label for="jobTitle">JD title <span class="optional">required unless URL-only + LLM enabled</span></label>
         <input id="jobTitle" placeholder="AI Product Manager" />
 
         <div class="row">
@@ -292,10 +315,10 @@
           </div>
         </div>
 
-        <label for="jobUrl">JD URL</label>
+        <label for="jobUrl">JD URL <span class="optional">can stand alone only with LLM enabled</span></label>
         <input id="jobUrl" placeholder="https://..." />
 
-        <label for="jobDescription">JD text</label>
+        <label for="jobDescription">JD text <span class="optional">required unless URL-only + LLM enabled</span></label>
         <textarea id="jobDescription" placeholder="Paste responsibilities, requirements, skills, and product context..."></textarea>
 
         <div class="actions">
@@ -334,8 +357,9 @@
       </div>
 
       <div class="panel">
-        <h2><span class="step">5</span> Job Detail & Resume Advice</h2>
-        <div id="jobDetail" class="empty">Select a ranked JD to view reasons, gaps, and resume improvements.</div>
+        <h2><span class="step">5</span> Resume Advice for Every JD</h2>
+        <p>Each submitted JD gets its own ranking reasons, gaps, and resume improvement suggestions.</p>
+        <div id="jobDetail" class="empty">Run an analysis to see resume advice for every JD.</div>
       </div>
     </section>
 
@@ -354,7 +378,9 @@
     const state = {
       jobs: [],
       analyses: [],
-      selectedIndex: 0
+      selectedIndex: 0,
+      llmEnabled: false,
+      llmProvider: null
     };
 
     document.getElementById('resumeFile').addEventListener('change', async (event) => {
@@ -375,9 +401,10 @@
       }
 
       const job = readDraftJob();
+      const validation = validateDraftJob(job);
 
-      if (!job.title || !job.description) {
-        setStatus('JD title and JD text are required.');
+      if (!validation.ok) {
+        setStatus(validation.message);
         return;
       }
 
@@ -402,14 +429,15 @@
       const draftJob = readDraftJob();
       const hasDraftJob = draftJob.title || draftJob.description || draftJob.company || draftJob.location || draftJob.url;
 
-      if (!profile.resumeText && !profile.websiteUrl && !profile.githubUrl) {
-        setStatus('Add at least one supported background source: resume, personal website, or GitHub.');
+      if (!profile.resumeText) {
+        setStatus('Resume is required. Website and GitHub are optional.');
         return;
       }
 
       if (hasDraftJob) {
-        if (!draftJob.title || !draftJob.description) {
-          setStatus('The current JD draft needs at least title and JD text before analyzing.');
+        const validation = validateDraftJob(draftJob);
+        if (!validation.ok) {
+          setStatus(validation.message);
           return;
         }
         if (state.jobs.length >= 10) {
@@ -503,54 +531,59 @@
 
     function renderDetail(index) {
       state.selectedIndex = index;
-      const job = state.analyses[index];
       renderResults();
 
       const detail = document.getElementById('jobDetail');
-      if (!job) {
+      if (state.analyses.length === 0) {
         detail.className = 'empty';
-        detail.textContent = 'Select a ranked JD to view details.';
+        detail.textContent = 'Run an analysis to see resume advice for every JD.';
         return;
       }
 
       detail.className = '';
-      detail.innerHTML = `
-        <div class="panel-header">
-          <div>
-            <span class="tag">Rank #${job.rank}</span>
-            <h2>${escapeHtml(job.title)}</h2>
-            <p>${escapeHtml(job.company)} · ${escapeHtml(job.location)}</p>
+      detail.innerHTML = state.analyses.map((job, adviceIndex) => renderAdviceCard(job, adviceIndex)).join('');
+    }
+
+    function renderAdviceCard(job, adviceIndex) {
+      return `
+        <article class="advice-card ${adviceIndex === state.selectedIndex ? 'active' : ''}" id="advice-${job.rank}">
+          <div class="panel-header">
+            <div>
+              <span class="tag">Rank #${job.rank} · ${escapeHtml(job.level)}</span>
+              <h2>${escapeHtml(job.title)}</h2>
+              <p>${escapeHtml(job.company)} · ${escapeHtml(job.location)}</p>
+            </div>
+            <span class="score ${job.level.toLowerCase()}">${job.successProbability}%</span>
           </div>
-          <span class="score ${job.level.toLowerCase()}">${job.successProbability}%</span>
-        </div>
 
-        <div class="detail-section">
-          <h3>Ranking reasons</h3>
-          ${renderList(job.rankingReasons)}
-        </div>
-
-        <div class="detail-section">
-          <h3>Resume improvement suggestions</h3>
-          ${renderList(job.resumeImprovements)}
-        </div>
-
-        <div class="detail-section">
-          <h3>Matched skills and gaps</h3>
-          <div class="row">
-            ${(job.matchedSkills || []).map((skill) => `<span class="tag">${escapeHtml(skill)}</span>`).join('') || '<span class="muted">No direct skill matches detected.</span>'}
+          <div class="detail-section">
+            <h3>Ranking reasons</h3>
+            ${renderList(job.rankingReasons)}
           </div>
-          <p><strong>Gaps:</strong> ${(job.missingSkills || []).map(escapeHtml).join(', ') || 'No major gaps detected.'}</p>
-        </div>
 
-        <div class="detail-section">
-          <h3>Risks</h3>
-          ${renderList(job.risks)}
-        </div>
+          <div class="detail-section">
+            <h3>Resume improvement suggestions</h3>
+            ${renderList(job.resumeImprovements)}
+          </div>
 
-        <div class="detail-section">
-          <h3>Interview talking points</h3>
-          ${renderList(job.interviewTalkingPoints)}
-        </div>
+          <div class="detail-section">
+            <h3>Matched skills and gaps</h3>
+            <div class="row">
+              ${(job.matchedSkills || []).map((skill) => `<span class="tag">${escapeHtml(skill)}</span>`).join('') || '<span class="muted">No direct skill matches detected.</span>'}
+            </div>
+            <p><strong>Gaps:</strong> ${(job.missingSkills || []).map(escapeHtml).join(', ') || 'No major gaps detected.'}</p>
+          </div>
+
+          <div class="detail-section">
+            <h3>Risks</h3>
+            ${renderList(job.risks)}
+          </div>
+
+          <div class="detail-section">
+            <h3>Interview talking points</h3>
+            ${renderList(job.interviewTalkingPoints)}
+          </div>
+        </article>
       `;
     }
 
@@ -622,7 +655,7 @@
       document.getElementById('jobResults').className = 'empty';
       document.getElementById('jobResults').textContent = 'Run an analysis to see ranked JD cards.';
       document.getElementById('jobDetail').className = 'empty';
-      document.getElementById('jobDetail').textContent = 'Select a ranked JD to view reasons, gaps, and resume improvements.';
+      document.getElementById('jobDetail').textContent = 'Run an analysis to see resume advice for every JD.';
       setStatus('Cleared local UI state.');
     }
 
@@ -640,6 +673,45 @@
         url: readInput('jobUrl'),
         description: readInput('jobDescription')
       };
+    }
+
+    function validateDraftJob(job) {
+      const hasUrl = Boolean(job.url);
+      const hasManualContent = Boolean(job.title && job.description);
+
+      if (hasManualContent) {
+        return { ok: true };
+      }
+
+      if (hasUrl) {
+        if (state.llmEnabled) {
+          return { ok: true };
+        }
+        return {
+          ok: false,
+          message: 'JD URL-only analysis needs LLM-backed extraction. LLM is not enabled now, so please paste the JD title and content manually.'
+        };
+      }
+
+      return {
+        ok: false,
+        message: 'Add a JD URL, or manually fill both JD title and JD text.'
+      };
+    }
+
+    async function loadConfig() {
+      try {
+        const config = await requestJson('/api/config');
+        state.llmEnabled = Boolean(config.llmEnabled);
+        state.llmProvider = config.llmProvider;
+        const status = state.llmEnabled
+          ? `LLM extraction enabled (${config.llmProvider}). JD URL can be submitted without manual title/text.`
+          : 'LLM extraction is not enabled. JD URL alone is not enough; paste JD title and JD text manually.';
+        document.getElementById('llmStatus').textContent = status;
+        document.getElementById('llmStatus').className = state.llmEnabled ? 'hint' : 'hint warning';
+      } catch (_error) {
+        document.getElementById('llmStatus').textContent = 'Could not read LLM status. Paste JD title and JD text manually.';
+      }
     }
 
     async function requestJson(url, options = {}) {
@@ -673,6 +745,7 @@
     }
 
     renderJobList();
+    loadConfig();
   </script>
 </body>
 </html>

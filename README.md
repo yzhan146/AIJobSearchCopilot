@@ -99,7 +99,7 @@ http://localhost:8080/
 
 The demo console can run the mock planner locally, reset demo files, show trace entries, list pending approvals, approve a specific `actionId`, and rerun the apply demo to verify that the approved action executes as a queued mock result.
 
-The main UI now follows `docs/ui-improvement-prd.md`: users provide only resume text/file, personal website, or GitHub as background sources, submit 1-10 JDs, then receive a success-probability ranking, ranking reasons, and per-JD resume improvement suggestions. Agent trace and approval demos remain available as a secondary section.
+The main UI now follows `docs/ui-improvement-prd.md`: users must provide resume text/file, may optionally add a personal website or GitHub, submit 1-10 JDs, then receive a success-probability ranking, ranking reasons, and resume improvement suggestions for every submitted JD. JD URL-only submission is allowed only when LLM-backed extraction is enabled; otherwise the UI asks users to paste JD title and text manually. Agent trace and approval demos remain available as a secondary section.
 
 The local UI analysis endpoint uses deterministic keyword/rubric logic so it works without a user-provided API key. A production deployment should keep model calls server-side and use LLMs for structured profile/JD extraction and high-quality resume rewriting, while retaining deterministic ranking validation and safety checks.
 

@@ -25,13 +25,14 @@
 
 | 输入类型 | 说明 | 是否必需 |
 |---|---|---|
-| 简历 | 用户上传自己的简历文件或粘贴简历文本 | 至少需要一种背景输入 |
+| 简历 | 用户上传自己的简历文件或粘贴简历文本 | 必需 |
 | 个人网站 | 用户填写个人网站 URL，例如 portfolio / blog / project page | 可选 |
 | GitHub | 用户填写 GitHub profile 或 repo URL | 可选 |
 
 明确限制：
 
 - **不支持**除简历、个人网站、GitHub 以外的用户背景提交方式。
+- 简历是必填项；个人网站和 GitHub 只是可选补充项。
 - 不支持上传无关文件，例如证书合集、聊天记录、作品截图包等。
 - 不支持无限制爬取外部网站；个人网站和 GitHub 只作为用户明确提供的背景来源。
 
@@ -48,6 +49,8 @@ JD 输入方式：
 限制：
 
 - 单批次超过 10 个 JD 时，UI 应提示用户减少数量。
+- 如果用户提供 JD URL，职位名称和 JD 文本可以不填，但这依赖 LLM-backed URL extraction。
+- 如果当前 LLM 未启用，JD URL 不能单独完成分析，UI 应提示用户手动填写职位名称并粘贴 JD 内容。
 - 不支持无限批量导入。
 - 不支持自动从招聘网站大规模抓取 JD。
 
@@ -102,7 +105,7 @@ JD 输入方式：
 ## 5. 产品原则
 
 1. **结论先行**：先告诉用户 10 个 JD 里哪些成功率最高，再解释原因。
-2. **输入克制**：只收集简历、个人网站、GitHub 和最多 10 个 JD，不做复杂表单。
+2. **输入克制**：简历必填，个人网站和 GitHub 可选；单批次最多 10 个 JD，不做复杂表单。
 3. **AI 可解释**：每个排序结果都要能看到匹配项、缺口、风险和证据。
 4. **建议可执行**：简历建议必须具体到 skill、经历、项目表述和优先级。
 5. **简单现代**：UI 风格应平面化、简洁、现代，减少装饰和认知负担。
@@ -136,15 +139,15 @@ Approval Center
 
 核心内容：
 
-- 简历上传或简历文本粘贴
-- 个人网站 URL 输入
-- GitHub profile/repo URL 输入
+- 简历上传或简历文本粘贴，必填并标红色星号
+- 个人网站 URL 输入，标注 optional
+- GitHub profile/repo URL 输入，标注 optional
 - 背景资料解析状态
 - 资料完整度提示
 
 验收标准：
 
-- 用户清楚知道只支持简历、个人网站和 GitHub。
+- 用户清楚知道简历必填，个人网站和 GitHub 可选。
 - 用户不需要填写复杂问卷也能开始分析。
 - 系统能展示已成功读取哪些背景来源。
 
@@ -156,6 +159,7 @@ Approval Center
 
 - JD 文本输入框
 - JD URL 输入框
+- LLM 状态提示：LLM 未启用时，URL-only 不可用
 - 已添加 JD 列表
 - 当前数量：例如 `6 / 10`
 - 删除 / 编辑 JD
@@ -165,6 +169,8 @@ Approval Center
 
 - 用户能一次提交 1-10 个 JD。
 - 超过 10 个 JD 时无法继续添加。
+- 用户提供 JD URL 且 LLM 已启用时，其余 JD 字段可以为空。
+- 用户提供 JD URL 但 LLM 未启用时，UI 应提示必须手动填写 JD 标题和内容。
 - 每个 JD 在提交前都能看到标题或摘要。
 
 ### 6.3 Ranking Dashboard
@@ -325,7 +331,7 @@ Approval Center
 
 ```text
 用户进入 Profile Setup
- -> 上传简历 / 粘贴简历文本
+ -> 上传简历 / 粘贴简历文本（必填）
  -> 可选填写个人网站
  -> 可选填写 GitHub
  -> 系统解析用户背景
@@ -393,6 +399,7 @@ Agent 准备 apply_to_job
 验收标准：
 
 - 用户能在 1 分钟内完成背景资料输入。
+- 简历为空时不能继续分析。
 - 用户清楚知道哪些输入方式支持，哪些不支持。
 - 系统能展示用户背景资料是否已成功解析。
 
@@ -411,6 +418,8 @@ Agent 准备 apply_to_job
 
 - 用户最多只能提交 10 个 JD。
 - 超过 10 个时按钮禁用并提示原因。
+- JD URL-only 只有在 LLM 启用时才允许。
+- LLM 未启用时，用户必须手动填写 JD 标题和 JD 文本。
 - 用户提交前能看到当前批次包含哪些 JD。
 
 ### 8.3 Ranking Dashboard 页面
@@ -521,10 +530,10 @@ Agent 准备 apply_to_job
 
 | 数据 | 来源 |
 |---|---|
-| 用户简历 | 用户上传文件或粘贴文本 |
-| 个人网站 | 用户填写 URL |
-| GitHub | 用户填写 profile/repo URL |
-| JD 输入 | 用户粘贴 JD 文本或 URL，单批次最多 10 个 |
+| 用户简历 | 用户上传文件或粘贴文本，必填 |
+| 个人网站 | 用户填写 URL，可选 |
+| GitHub | 用户填写 profile/repo URL，可选 |
+| JD 输入 | 用户粘贴 JD 文本或 URL，单批次最多 10 个；URL-only 依赖 LLM 启用 |
 | 分析结果 | `exports/local-mvp-results.json` |
 | tool trace | `exports/tool-call-trace.json` |
 | pending approvals | `exports/pending-approvals.json` |
@@ -559,7 +568,7 @@ UI 应该简单、直接、平面化，整体设计风格参考 `marshallzzz.com
 
 ### P0
 
-1. Profile Setup：支持简历、个人网站、GitHub 输入。
+1. Profile Setup：简历必填，个人网站和 GitHub 可选。
 2. JD Submission：支持最多 10 个 JD。
 3. Ranking Dashboard：按成功率排序展示所有 JD。
 4. Job Shortlist：展示 JD 卡片、成功率和排序理由。
@@ -600,7 +609,9 @@ UI 应该简单、直接、平面化，整体设计风格参考 `marshallzzz.com
 | 指标 | 目标 |
 |---|---|
 | 用户完成背景资料输入 | 小于 1 分钟 |
+| Profile 必填校验 | 简历为空时明确提示，不允许分析 |
 | 用户提交 JD 数量 | 支持 1-10 个，超过 10 个时明确拦截 |
+| JD URL-only 判断 | LLM 启用时允许，LLM 未启用时提示手动粘贴 JD |
 | 用户找到最高成功率 JD 的时间 | 小于 10 秒 |
 | 用户理解推荐理由 | 不需要打开 JSON |
 | 用户理解排序理由 | 每个 JD 至少展示 1-2 条清晰原因 |
@@ -613,8 +624,8 @@ UI 应该简单、直接、平面化，整体设计风格参考 `marshallzzz.com
 
 可以这样讲：
 
-> After completing the backend agent workflow, I refined the UI PRD around a tighter user journey: users provide only resume, personal website, or GitHub as background sources, submit up to 10 JDs, and receive a success-probability ranking with clear reasons. For each JD, the product also generates concrete resume improvement suggestions, such as skills to add, experiences to emphasize, and project descriptions to rewrite.
+> After completing the backend agent workflow, I refined the UI PRD around a tighter user journey: users must provide a resume, can optionally add a personal website or GitHub, submit up to 10 JDs, and receive a success-probability ranking with clear reasons. JD URL-only input is supported only when LLM-backed extraction is enabled; otherwise users paste JD title and content manually. For every JD, the product generates concrete resume improvement suggestions.
 
 中文版本：
 
-> 后端 Agent workflow 跑通以后，我把 UI PRD 收敛成一个更清晰的产品流程：用户只需要提供简历、个人网站或 GitHub，然后提交最多 10 个 JD，系统按成功率排序，并解释每个 JD 为什么排在这个位置。对每个 JD，产品还会给出具体简历修改建议，例如应该补哪些 skill、调整哪些经历、突出哪些项目。
+> 后端 Agent workflow 跑通以后，我把 UI PRD 收敛成一个更清晰的产品流程：用户必须提供简历，可以选择补充个人网站或 GitHub，然后提交最多 10 个 JD，系统按成功率排序，并解释每个 JD 为什么排在这个位置。JD URL-only 只有在 LLM-backed extraction 启用时才允许；否则用户需要手动粘贴 JD 标题和内容。对每个 JD，产品都会给出具体简历修改建议。
