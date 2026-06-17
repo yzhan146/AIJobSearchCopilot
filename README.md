@@ -25,9 +25,9 @@ The demo is designed to explore practical AI application patterns:
 
 ## Status
 
-Milestone 1 local MVP is implemented as a TypeScript CLI. The main product workflow is now **hybrid**: LLM structured extraction, schema validation, deterministic scoring, LLM recommendation generation, and export for human review.
+Milestones 1-4 are implemented as a local TypeScript AI workflow and agent prototype. The main product workflow is now **hybrid**: LLM structured extraction, schema validation, deterministic scoring, RAG-backed profile evidence, LLM recommendation generation, tool-call tracing, and human approval boundaries for external actions.
 
-Milestone 2 added local RAG-backed profile matching. Milestone 3 is now underway: the local MVP runs through an explicit tool registry with typed tool metadata, side-effect boundaries, human-approval policy metadata, and a tool-call trace file.
+Milestone 3 introduced the explicit tool registry and traceable tool execution. Milestone 4 added an LLM planner prototype, approval-gated external action demos, planner tests, and a minimal web UI for reviewing traces and approvals.
 
 See the Milestone 1 recap:
 
@@ -46,6 +46,8 @@ docs/rag-interview-question-bank.md
 docs/non-coder-code-walkthrough.md
 docs/milestone-3-outline.md
 docs/milestone-3-tool-calling-recap.md
+docs/milestone-4-plan.md
+docs/milestone-3-4-agent-recap.md
 ```
 
 ## Quick start
@@ -71,6 +73,20 @@ Run the RAG retrieval evaluation:
 
 ```bash
 npm run eval:rag
+```
+
+Run the planner prototype with a deterministic mock LLM:
+
+```bash
+npm run demo:planner:mock
+npm run demo:planner:apply:mock
+npm run test:planner
+```
+
+View the local trace and approval demo UI:
+
+```bash
+npm run web:serve
 ```
 
 Run with OpenAI:
@@ -142,6 +158,7 @@ It writes local generated files to `exports/`:
 - `local-mvp-results.json`
 - `local-mvp-results.csv`
 - `tool-call-trace.json`
+- `approvals.json` when using the approval UI
 - `rag-retrieval-evaluation.json`
 - `rag-retrieval-evaluation.md`
 
@@ -167,8 +184,8 @@ This workflow intentionally separates deterministic code from LLM/tool-facing bo
 | Gold set evaluation | `data/gold_judgments.json` defines human expected labels | Do not judge prompt quality without a target answer |
 | RAG | `retrieveProfileEvidence()` retrieves cited chunks from `data/profile_knowledge.json` | Keep retrieval inspectable and evaluate recall before improving embeddings |
 | Function calling | Core capabilities are exposed through `src/agent/toolRegistry.ts` | Tools have typed inputs, schemas, output summaries, and side-effect metadata |
-| Agent workflow | `runLocalMvp()` executes a fixed plan through registered tools | Start reliable and auditable before adding dynamic agent decisions |
-| Human approval | External actions are listed in `src/agent/approvalPolicy.ts` | Applying, messaging, or resume upload should require explicit user approval |
+| Agent workflow | `runLocalMvp()` executes a fixed plan; `runPlannerGoal()` can execute an LLM-generated plan | Start reliable and auditable, then add dynamic planning under validation |
+| Human approval | External actions are listed in `src/agent/approvalPolicy.ts` and can be approved through `exports/approvals.json` | Applying, messaging, or resume upload should require explicit user approval |
 
 ## Learning checkpoint: Milestone 1.1
 
