@@ -107,10 +107,13 @@ Next polish:
 
 ## Milestone 3: Tool calling and agent workflow
 
-See the outline:
+Status: started. The fixed local MVP workflow now runs through an explicit typed tool registry and writes a tool-call trace for debugging and interview explanation.
+
+See the outline and recap:
 
 ```text
 docs/milestone-3-outline.md
+docs/milestone-3-tool-calling-recap.md
 ```
 
 - Add tool/function calls for:

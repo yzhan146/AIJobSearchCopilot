@@ -27,7 +27,7 @@ The demo is designed to explore practical AI application patterns:
 
 Milestone 1 local MVP is implemented as a TypeScript CLI. The main product workflow is now **hybrid**: LLM structured extraction, schema validation, deterministic scoring, LLM recommendation generation, and export for human review.
 
-Milestone 2 has started with local RAG-backed profile matching: sanitized profile/project/role-criteria chunks are retrieved per JD and connected to recommendations with citations.
+Milestone 2 added local RAG-backed profile matching. Milestone 3 is now underway: the local MVP runs through an explicit tool registry with typed tool metadata, side-effect boundaries, human-approval policy metadata, and a tool-call trace file.
 
 See the Milestone 1 recap:
 
@@ -35,7 +35,7 @@ See the Milestone 1 recap:
 docs/milestone-1-local-mvp-recap.md
 ```
 
-See the Milestone 2 recap:
+See the learning docs:
 
 ```text
 docs/milestone-2-rag-profile-matching.md
@@ -45,6 +45,7 @@ docs/rag-chinese-primer.md
 docs/rag-interview-question-bank.md
 docs/non-coder-code-walkthrough.md
 docs/milestone-3-outline.md
+docs/milestone-3-tool-calling-recap.md
 ```
 
 ## Quick start
@@ -140,6 +141,7 @@ It writes local generated files to `exports/`:
 
 - `local-mvp-results.json`
 - `local-mvp-results.csv`
+- `tool-call-trace.json`
 - `rag-retrieval-evaluation.json`
 - `rag-retrieval-evaluation.md`
 
@@ -147,15 +149,15 @@ It writes local generated files to `exports/`:
 
 ```text
 sample jobs + candidate profile
- -> extractJobSignalsWithLlm()
- -> validate JobSignals
- -> retrieveProfileEvidence()
- -> scoreJob()
- -> generateRecommendationsWithLlm()
- -> exportResults()
+ -> tool: extract_job_signals
+ -> tool: score_job
+ -> tool: retrieve_profile_evidence
+ -> tool: generate_recommendation
+ -> tool: export_results
+ -> tool-call-trace.json
 ```
 
-This first milestone intentionally separates deterministic code from future LLM calls:
+This workflow intentionally separates deterministic code from LLM/tool-facing boundaries:
 
 | Concept | Current implementation | Interview point |
 |---|---|---|
@@ -164,8 +166,9 @@ This first milestone intentionally separates deterministic code from future LLM 
 | Prompt experiments | Prompt builders live under `src/llm/prompts/` | Compare prompt strategies against the deterministic baseline |
 | Gold set evaluation | `data/gold_judgments.json` defines human expected labels | Do not judge prompt quality without a target answer |
 | RAG | `retrieveProfileEvidence()` retrieves cited chunks from `data/profile_knowledge.json` | Keep retrieval inspectable and evaluate recall before improving embeddings |
-| Function calling | Tools are plain typed functions | Later, expose these same functions as model-callable tools |
-| Agent workflow | `runLocalMvp()` orchestrates fixed steps | Later, add agent decision logic and human approval gates |
+| Function calling | Core capabilities are exposed through `src/agent/toolRegistry.ts` | Tools have typed inputs, schemas, output summaries, and side-effect metadata |
+| Agent workflow | `runLocalMvp()` executes a fixed plan through registered tools | Start reliable and auditable before adding dynamic agent decisions |
+| Human approval | External actions are listed in `src/agent/approvalPolicy.ts` | Applying, messaging, or resume upload should require explicit user approval |
 
 ## Learning checkpoint: Milestone 1.1
 

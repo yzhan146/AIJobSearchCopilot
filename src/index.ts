@@ -52,8 +52,10 @@ async function main(): Promise<void> {
       : "LLM mode: disabled"
   );
   console.log("RAG mode: local keyword retrieval");
+  console.log("Tool workflow: enabled");
   console.log(`JSON output: ${result.outputFiles.jsonPath}`);
   console.log(`CSV output: ${result.outputFiles.csvPath}`);
+  console.log(`Tool trace: ${result.traceFile}`);
 
   const topMatch = result.analyses[0];
   if (topMatch) {
