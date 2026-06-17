@@ -2,291 +2,648 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI Job Search Copilot — Agent Demo Console</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Job Search Copilot</title>
   <style>
     :root {
-      color-scheme: light;
+      --bg: #f7f5f0;
+      --panel: #ffffff;
+      --ink: #171717;
+      --muted: #6b665d;
+      --line: #ded8cd;
+      --soft: #f0ebe2;
+      --accent: #2563eb;
+      --accent-ink: #ffffff;
+      --green: #0f8a5f;
+      --amber: #a16207;
+      --red: #b42318;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height: 1.5;
     }
+
+    * { box-sizing: border-box; }
     body {
-      background: #f6f8fa;
-      color: #24292f;
+      background: var(--bg);
+      color: var(--ink);
       margin: 0;
     }
     header {
-      background: #0d1117;
-      color: white;
-      padding: 24px 32px;
+      border-bottom: 1px solid var(--line);
+      padding: 28px clamp(18px, 5vw, 64px);
     }
     main {
       display: grid;
-      gap: 16px;
-      grid-template-columns: minmax(320px, 420px) 1fr;
-      padding: 24px 32px;
+      gap: 22px;
+      padding: 24px clamp(18px, 5vw, 64px) 48px;
     }
-    h1, h2, h3 { margin: 0 0 10px; }
-    .card {
-      background: white;
-      border: 1px solid #d0d7de;
-      border-radius: 12px;
-      box-shadow: 0 1px 2px rgba(27,31,36,0.04);
-      padding: 16px;
+    h1 {
+      font-size: clamp(34px, 7vw, 78px);
+      letter-spacing: -0.06em;
+      line-height: 0.95;
+      margin: 0 0 14px;
+      max-width: 960px;
     }
-    .stack { display: grid; gap: 16px; }
-    .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    h2, h3 { letter-spacing: -0.03em; margin: 0; }
+    p { color: var(--muted); margin: 8px 0 0; }
+    label {
+      color: var(--muted);
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 14px 0 6px;
+      text-transform: uppercase;
+    }
+    input, textarea {
+      background: #fffdfa;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: var(--ink);
+      font: inherit;
+      padding: 12px 14px;
+      width: 100%;
+    }
+    textarea { min-height: 120px; resize: vertical; }
     button {
-      border: 1px solid #8c959f;
-      border-radius: 8px;
-      background: #ffffff;
-      color: #24292f;
-      cursor: pointer;
-      font-weight: 600;
-      padding: 8px 12px;
-    }
-    button.primary { background: #2da44e; border-color: #2da44e; color: white; }
-    button.danger { background: #cf222e; border-color: #cf222e; color: white; }
-    button:disabled { cursor: not-allowed; opacity: 0.6; }
-    code, pre {
-      background: #f6f8fa;
-      border-radius: 6px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    }
-    pre {
-      border: 1px solid #d0d7de;
-      max-height: 280px;
-      overflow: auto;
-      padding: 12px;
-      white-space: pre-wrap;
-    }
-    .entry {
-      border: 1px solid #d0d7de;
-      border-radius: 10px;
-      margin: 10px 0;
-      padding: 12px;
-    }
-    .entry.success { border-left: 5px solid #2da44e; }
-    .entry.failure { border-left: 5px solid #cf222e; }
-    .meta { color: #57606a; font-size: 12px; }
-    .badge {
+      background: var(--ink);
+      border: 1px solid var(--ink);
       border-radius: 999px;
-      display: inline-block;
+      color: white;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+      padding: 10px 16px;
+    }
+    button.secondary {
+      background: transparent;
+      border-color: var(--line);
+      color: var(--ink);
+    }
+    button.subtle {
+      background: var(--soft);
+      border-color: var(--soft);
+      color: var(--ink);
+    }
+    button:disabled { cursor: not-allowed; opacity: 0.5; }
+    .hero-subtitle {
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 780px;
+    }
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(300px, 0.85fr) minmax(360px, 1.15fr);
+    }
+    .panel {
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 22px;
+    }
+    .panel-header {
+      align-items: flex-start;
+      display: flex;
+      gap: 14px;
+      justify-content: space-between;
+    }
+    .step {
+      align-items: center;
+      background: var(--ink);
+      border-radius: 999px;
+      color: white;
+      display: inline-flex;
+      font-size: 13px;
+      font-weight: 800;
+      height: 28px;
+      justify-content: center;
+      min-width: 28px;
+      padding: 0 10px;
+    }
+    .hint {
+      background: var(--soft);
+      border-radius: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 12px;
+      padding: 10px 12px;
+    }
+    .muted { color: var(--muted); }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .jd-list { display: grid; gap: 8px; margin-top: 12px; }
+    .jd-item {
+      align-items: center;
+      background: var(--soft);
+      border-radius: 16px;
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      padding: 10px 12px;
+    }
+    .count-pill, .tag {
+      background: var(--soft);
+      border-radius: 999px;
+      color: var(--muted);
+      display: inline-flex;
       font-size: 12px;
       font-weight: 700;
-      margin-left: 8px;
-      padding: 2px 8px;
+      padding: 5px 10px;
     }
-    .badge.compute { background: #ddf4ff; color: #0969da; }
-    .badge.external { background: #ffebe9; color: #cf222e; }
-    .badge.local { background: #fff8c5; color: #7d4e00; }
-    .approval {
-      background: #fff8c5;
-      border: 1px solid #d4a72c;
-      border-radius: 10px;
-      margin: 8px 0;
-      padding: 10px;
+    .summary-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
     }
-    .muted { color: #57606a; }
-    @media (max-width: 900px) {
-      main { grid-template-columns: 1fr; padding: 16px; }
-      header { padding: 20px 16px; }
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 16px;
+    }
+    .metric strong {
+      display: block;
+      font-size: 30px;
+      letter-spacing: -0.05em;
+    }
+    .results-layout {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(300px, 0.9fr) minmax(420px, 1.1fr);
+    }
+    .job-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      cursor: pointer;
+      margin-top: 10px;
+      padding: 16px;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+    .job-card:hover, .job-card.active {
+      border-color: var(--ink);
+      transform: translateY(-1px);
+    }
+    .score {
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      display: inline-flex;
+      font-weight: 900;
+      gap: 6px;
+      padding: 7px 12px;
+    }
+    .score.strong { color: var(--green); }
+    .score.medium { color: var(--amber); }
+    .score.low { color: var(--red); }
+    .detail-section {
+      border-top: 1px solid var(--line);
+      margin-top: 18px;
+      padding-top: 18px;
+    }
+    ul { margin: 10px 0 0; padding-left: 20px; }
+    li { margin: 7px 0; }
+    .empty {
+      align-items: center;
+      border: 1px dashed var(--line);
+      border-radius: 24px;
+      color: var(--muted);
+      display: grid;
+      min-height: 180px;
+      padding: 26px;
+      place-items: center;
+      text-align: center;
+    }
+    details {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 16px 18px;
+    }
+    summary { cursor: pointer; font-weight: 800; }
+    pre {
+      background: #111;
+      border-radius: 16px;
+      color: #f8f8f2;
+      max-height: 340px;
+      overflow: auto;
+      padding: 14px;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 980px) {
+      .grid, .results-layout { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>AI Job Search Copilot — Agent Demo Console</h1>
-    <div class="muted">Test Milestone 5: planner validation, trace, pending approval, actionId approval, and approved mock execution.</div>
+    <span class="tag">Resume + Website + GitHub · Up to 10 JDs</span>
+    <h1>Rank job descriptions by success probability.</h1>
+    <div class="hero-subtitle">
+      Upload your background, submit a small JD batch, and get a simple ranked shortlist with reasons and resume improvement suggestions for each role.
+    </div>
   </header>
 
   <main>
-    <section class="stack">
-      <div class="card">
-        <h2>How to test</h2>
-        <p>Recommended flow:</p>
-        <ol>
-          <li>Click <strong>Reset demo state</strong>.</li>
-          <li>Click <strong>Run apply demo</strong>. The agent should block <code>apply_to_job</code> and create a pending approval.</li>
-          <li>Click <strong>Approve pending action</strong>.</li>
-          <li>Click <strong>Run apply demo</strong> again. The approved action should execute as a queued mock result.</li>
-        </ol>
-      </div>
-
-      <div class="card">
-        <h2>Controls</h2>
-        <div class="button-row">
-          <button class="primary" onclick="runDemo('apply')">Run apply demo</button>
-          <button onclick="runDemo('shortlist')">Run shortlist demo</button>
-          <button onclick="runDemo('explain')">Run explain demo</button>
-          <button onclick="refreshAll()">Refresh files</button>
-          <button class="danger" onclick="resetDemo()">Reset demo state</button>
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2><span class="step">1</span> Profile Setup</h2>
+            <p>Only resume, personal website, and GitHub are supported.</p>
+          </div>
         </div>
-        <p id="status" class="meta">Ready.</p>
+
+        <label for="resumeFile">Resume file</label>
+        <input id="resumeFile" type="file" accept=".txt,.md,.csv,.json,.pdf,.doc,.docx" />
+        <div class="hint">For this local prototype, plain text/markdown files work best. You can also paste resume text below.</div>
+
+        <label for="resumeText">Resume text</label>
+        <textarea id="resumeText" placeholder="Paste resume, portfolio summary, or project bullets here..."></textarea>
+
+        <label for="websiteUrl">Personal website URL</label>
+        <input id="websiteUrl" placeholder="https://your-site.com" />
+
+        <label for="githubUrl">GitHub URL</label>
+        <input id="githubUrl" placeholder="https://github.com/username or repo" />
       </div>
 
-      <div class="card">
-        <h2>Pending approvals</h2>
-        <div id="pendingApprovals" class="muted">No pending approvals loaded.</div>
-      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2><span class="step">2</span> JD Submission</h2>
+            <p>Add 1-10 job descriptions. The UI blocks anything above 10.</p>
+          </div>
+          <span id="jdCount" class="count-pill">0 / 10</span>
+        </div>
 
-      <div class="card">
-        <h2>Approved actions</h2>
-        <div id="approvedActions" class="muted">No approvals loaded.</div>
-      </div>
+        <label for="jobTitle">JD title</label>
+        <input id="jobTitle" placeholder="AI Product Manager" />
 
-      <div class="card">
-        <h2>Command output</h2>
-        <pre id="commandOutput">No command run yet.</pre>
+        <div class="row">
+          <div style="flex: 1 1 180px;">
+            <label for="company">Company</label>
+            <input id="company" placeholder="Company" />
+          </div>
+          <div style="flex: 1 1 180px;">
+            <label for="location">Location</label>
+            <input id="location" placeholder="Beijing / Remote" />
+          </div>
+        </div>
+
+        <label for="jobUrl">JD URL</label>
+        <input id="jobUrl" placeholder="https://..." />
+
+        <label for="jobDescription">JD text</label>
+        <textarea id="jobDescription" placeholder="Paste responsibilities, requirements, skills, and product context..."></textarea>
+
+        <div class="actions">
+          <button class="secondary" onclick="addJob()">Add JD</button>
+          <button class="subtle" onclick="loadSampleData()">Load sample profile + JDs</button>
+          <button class="secondary" onclick="clearAll()">Clear</button>
+        </div>
+        <div id="jdList" class="jd-list"></div>
+        <div class="actions">
+          <button id="analyzeButton" onclick="analyzeBatch()">Analyze and rank JDs</button>
+          <span id="status" class="hint">Ready.</span>
+        </div>
       </div>
     </section>
 
-    <section class="card">
-      <h2>Tool call trace</h2>
-      <p class="muted">Source: <code>exports/tool-call-trace.json</code></p>
-      <div id="traceEntries">No trace loaded.</div>
+    <section id="dashboard" class="panel" style="display:none;">
+      <div class="panel-header">
+        <div>
+          <h2><span class="step">3</span> Ranking Dashboard</h2>
+          <p id="batchRecommendation"></p>
+        </div>
+      </div>
+      <div class="summary-grid" style="margin-top: 16px;">
+        <div class="metric"><span class="muted">Total JDs</span><strong id="metricTotal">0</strong></div>
+        <div class="metric"><span class="muted">Average success</span><strong id="metricAvg">0%</strong></div>
+        <div class="metric"><span class="muted">Strong</span><strong id="metricStrong">0</strong></div>
+        <div class="metric"><span class="muted">Top JD</span><strong id="metricTop" style="font-size:20px;">-</strong></div>
+      </div>
     </section>
+
+    <section class="results-layout">
+      <div class="panel">
+        <h2><span class="step">4</span> Job Shortlist</h2>
+        <p>Sorted by success probability, highest first.</p>
+        <div id="jobResults" class="empty">Run an analysis to see ranked JD cards.</div>
+      </div>
+
+      <div class="panel">
+        <h2><span class="step">5</span> Job Detail & Resume Advice</h2>
+        <div id="jobDetail" class="empty">Select a ranked JD to view reasons, gaps, and resume improvements.</div>
+      </div>
+    </section>
+
+    <details>
+      <summary>Secondary: Agent trace and approval demo</summary>
+      <p>This is intentionally secondary so the main product UI stays simple.</p>
+      <div class="actions">
+        <button class="secondary" onclick="runAgentDemo('apply')">Run apply demo</button>
+        <button class="secondary" onclick="refreshTrace()">Refresh trace</button>
+      </div>
+      <pre id="traceOutput">Trace not loaded.</pre>
+    </details>
   </main>
 
   <script>
-    async function requestJson(url, options = {}) {
-      const res = await fetch(url, options);
-      if (!res.ok) {
-        throw new Error(await res.text());
+    const state = {
+      jobs: [],
+      analyses: [],
+      selectedIndex: 0
+    };
+
+    document.getElementById('resumeFile').addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (file.type && !file.type.startsWith('text') && !file.name.match(/\.(txt|md|csv|json)$/i)) {
+        setStatus('This prototype reads text-like resume files best. Please paste resume text if the file cannot be read.');
+        return;
       }
-      return res.json();
+      document.getElementById('resumeText').value = await file.text();
+      setStatus(`Loaded resume text from ${file.name}.`);
+    });
+
+    function addJob() {
+      if (state.jobs.length >= 10) {
+        setStatus('You can submit at most 10 JDs in one batch.');
+        return;
+      }
+
+      const job = {
+        title: readInput('jobTitle'),
+        company: readInput('company'),
+        location: readInput('location'),
+        url: readInput('jobUrl'),
+        description: readInput('jobDescription')
+      };
+
+      if (!job.title || !job.description) {
+        setStatus('JD title and JD text are required.');
+        return;
+      }
+
+      state.jobs.push(job);
+      clearJobForm();
+      renderJobList();
+      setStatus(`Added JD ${state.jobs.length} / 10.`);
     }
 
-    async function runDemo(goal) {
-      setStatus(`Running ${goal} demo... this can take a few seconds because it builds TypeScript first.`);
-      setButtonsDisabled(true);
+    function removeJob(index) {
+      state.jobs.splice(index, 1);
+      renderJobList();
+      setStatus(`Removed JD. Current batch: ${state.jobs.length} / 10.`);
+    }
+
+    async function analyzeBatch() {
+      const profile = {
+        resumeText: readInput('resumeText'),
+        websiteUrl: readInput('websiteUrl'),
+        githubUrl: readInput('githubUrl')
+      };
+
+      if (!profile.resumeText && !profile.websiteUrl && !profile.githubUrl) {
+        setStatus('Add at least one supported background source: resume, personal website, or GitHub.');
+        return;
+      }
+
+      if (state.jobs.length < 1 || state.jobs.length > 10) {
+        setStatus('Add between 1 and 10 JDs before analyzing.');
+        return;
+      }
+
+      setBusy(true);
+      setStatus('Analyzing profile-to-JD fit...');
       try {
-        const result = await requestJson(`/api/run-demo?goal=${encodeURIComponent(goal)}`, { method: 'POST' });
-        document.getElementById('commandOutput').textContent = [
-          result.stdout || '',
-          result.stderr ? `stderr:\n${result.stderr}` : ''
-        ].filter(Boolean).join('\n\n') || 'Command completed with no output.';
-        await refreshAll();
-        setStatus(`${goal} demo completed.`);
-      } catch (err) {
-        document.getElementById('commandOutput').textContent = String(err);
-        setStatus(`${goal} demo failed.`);
+        const result = await requestJson('/api/analyze-jds', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile, jobs: state.jobs })
+        });
+        state.analyses = result.analyses || [];
+        state.selectedIndex = 0;
+        renderDashboard(result.summary);
+        renderResults();
+        renderDetail(0);
+        setStatus('Analysis complete. Ranked by success probability.');
+      } catch (error) {
+        setStatus(`Analysis failed: ${error.message}`);
       } finally {
-        setButtonsDisabled(false);
+        setBusy(false);
       }
     }
 
-    async function resetDemo() {
-      setStatus('Resetting demo state...');
-      await requestJson('/api/reset-demo', { method: 'POST' });
-      document.getElementById('commandOutput').textContent = 'Demo files reset.';
-      await refreshAll();
-      setStatus('Demo state reset.');
-    }
-
-    async function approveAction(action) {
-      setStatus(`Approving ${action.actionId || action.tool}...`);
-      await requestJson('/approve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(action)
-      });
-      await refreshAll();
-      setStatus(`Approved ${action.actionId || action.tool}. Run apply demo again to execute it.`);
-    }
-
-    async function refreshAll() {
-      await Promise.allSettled([loadTrace(), loadPendingApprovals(), loadApprovals()]);
-    }
-
-    async function loadTrace() {
-      const container = document.getElementById('traceEntries');
-      try {
-        const trace = await requestJson('/tool-call-trace.json');
-        const entries = trace.entries || [];
-        if (entries.length === 0) {
-          container.innerHTML = '<p class="muted">Trace exists but has no entries.</p>';
-          return;
-        }
-        container.innerHTML = entries.map(renderTraceEntry).join('');
-      } catch (err) {
-        container.innerHTML = `<p class="muted">No trace yet. Run a demo first.</p>`;
-      }
-    }
-
-    async function loadPendingApprovals() {
-      const container = document.getElementById('pendingApprovals');
-      const approvals = await requestJson('/pending-approvals.json');
-      if (!approvals.length) {
-        container.innerHTML = '<p class="muted">No pending approvals.</p>';
+    function renderJobList() {
+      document.getElementById('jdCount').textContent = `${state.jobs.length} / 10`;
+      const list = document.getElementById('jdList');
+      if (state.jobs.length === 0) {
+        list.innerHTML = '';
         return;
       }
-      container.innerHTML = '';
-      for (const approval of approvals) {
-        const div = document.createElement('div');
-        div.className = 'approval';
-        div.innerHTML = `
-          <strong>${escapeHtml(approval.tool)}</strong>
-          <div class="meta">actionId: ${escapeHtml(approval.actionId || '')}</div>
-          <div>${escapeHtml(approval.inputSummary || '')}</div>
-        `;
-        const btn = document.createElement('button');
-        btn.className = 'primary';
-        btn.textContent = 'Approve pending action';
-        btn.onclick = () => approveAction(approval);
-        div.appendChild(btn);
-        container.appendChild(div);
-      }
-    }
 
-    async function loadApprovals() {
-      const container = document.getElementById('approvedActions');
-      const approvals = await requestJson('/approvals.json');
-      if (!approvals.length) {
-        container.innerHTML = '<p class="muted">No approved actions.</p>';
-        return;
-      }
-      container.innerHTML = approvals.map((approval) => `
-        <div class="approval">
-          <strong>${escapeHtml(approval.tool || approval.name || '')}</strong>
-          <div class="meta">actionId: ${escapeHtml(approval.actionId || '')} · status: ${escapeHtml(approval.status || 'approved')}</div>
-          <div>${escapeHtml(approval.inputSummary || '')}</div>
+      list.innerHTML = state.jobs.map((job, index) => `
+        <div class="jd-item">
+          <div>
+            <strong>${escapeHtml(job.title)}</strong>
+            <div class="muted">${escapeHtml(job.company || 'Unknown company')} · ${escapeHtml(job.location || 'Unknown location')}</div>
+          </div>
+          <button class="secondary" onclick="removeJob(${index})">Remove</button>
         </div>
       `).join('');
     }
 
-    function renderTraceEntry(entry) {
-      const sideEffectClass = entry.sideEffectLevel === 'external_action'
-        ? 'external'
-        : entry.sideEffectLevel === 'local_write'
-          ? 'local'
-          : 'compute';
-      return `
-        <div class="entry ${entry.success ? 'success' : 'failure'}">
-          <h3>
-            ${escapeHtml(entry.tool)}
-            <span class="badge ${sideEffectClass}">${escapeHtml(entry.sideEffectLevel)}</span>
-          </h3>
-          <div>${escapeHtml(entry.inputSummary || '')}</div>
-          <div class="meta">${escapeHtml(entry.outputSummary || '')} · ${entry.durationMs}ms · success: ${entry.success} · approval: ${escapeHtml(entry.approval || '')}</div>
-          ${entry.actionId ? `<div class="meta">actionId: ${escapeHtml(entry.actionId)}</div>` : ''}
-          ${entry.error ? `<pre>${escapeHtml(entry.error)}</pre>` : ''}
+    function renderDashboard(summary) {
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('batchRecommendation').textContent = summary.recommendation || '';
+      document.getElementById('metricTotal').textContent = summary.totalJobs || 0;
+      document.getElementById('metricAvg').textContent = `${summary.averageSuccessProbability || 0}%`;
+      document.getElementById('metricStrong').textContent = summary.strongCount || 0;
+      document.getElementById('metricTop').textContent = summary.topJob || '-';
+    }
+
+    function renderResults() {
+      const container = document.getElementById('jobResults');
+      if (state.analyses.length === 0) {
+        container.className = 'empty';
+        container.textContent = 'No results yet.';
+        return;
+      }
+
+      container.className = '';
+      container.innerHTML = state.analyses.map((job, index) => `
+        <article class="job-card ${index === state.selectedIndex ? 'active' : ''}" onclick="renderDetail(${index})">
+          <div class="panel-header">
+            <div>
+              <span class="tag">#${job.rank} · ${escapeHtml(job.level)}</span>
+              <h3>${escapeHtml(job.title)}</h3>
+              <p>${escapeHtml(job.company)} · ${escapeHtml(job.location)}</p>
+            </div>
+            <span class="score ${job.level.toLowerCase()}">${job.successProbability}%</span>
+          </div>
+          <ul>
+            ${(job.rankingReasons || []).slice(0, 2).map((reason) => `<li>${escapeHtml(reason)}</li>`).join('')}
+          </ul>
+        </article>
+      `).join('');
+    }
+
+    function renderDetail(index) {
+      state.selectedIndex = index;
+      const job = state.analyses[index];
+      renderResults();
+
+      const detail = document.getElementById('jobDetail');
+      if (!job) {
+        detail.className = 'empty';
+        detail.textContent = 'Select a ranked JD to view details.';
+        return;
+      }
+
+      detail.className = '';
+      detail.innerHTML = `
+        <div class="panel-header">
+          <div>
+            <span class="tag">Rank #${job.rank}</span>
+            <h2>${escapeHtml(job.title)}</h2>
+            <p>${escapeHtml(job.company)} · ${escapeHtml(job.location)}</p>
+          </div>
+          <span class="score ${job.level.toLowerCase()}">${job.successProbability}%</span>
+        </div>
+
+        <div class="detail-section">
+          <h3>Ranking reasons</h3>
+          ${renderList(job.rankingReasons)}
+        </div>
+
+        <div class="detail-section">
+          <h3>Resume improvement suggestions</h3>
+          ${renderList(job.resumeImprovements)}
+        </div>
+
+        <div class="detail-section">
+          <h3>Matched skills and gaps</h3>
+          <div class="row">
+            ${(job.matchedSkills || []).map((skill) => `<span class="tag">${escapeHtml(skill)}</span>`).join('') || '<span class="muted">No direct skill matches detected.</span>'}
+          </div>
+          <p><strong>Gaps:</strong> ${(job.missingSkills || []).map(escapeHtml).join(', ') || 'No major gaps detected.'}</p>
+        </div>
+
+        <div class="detail-section">
+          <h3>Risks</h3>
+          ${renderList(job.risks)}
+        </div>
+
+        <div class="detail-section">
+          <h3>Interview talking points</h3>
+          ${renderList(job.interviewTalkingPoints)}
         </div>
       `;
+    }
+
+    function renderList(items = []) {
+      return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+    }
+
+    async function runAgentDemo(goal) {
+      const output = document.getElementById('traceOutput');
+      output.textContent = `Running ${goal} agent demo...`;
+      try {
+        const result = await requestJson(`/api/run-demo?goal=${encodeURIComponent(goal)}`, { method: 'POST' });
+        output.textContent = result.stdout || 'Demo completed.';
+        await refreshTrace();
+      } catch (error) {
+        output.textContent = `Demo failed: ${error.message}`;
+      }
+    }
+
+    async function refreshTrace() {
+      const output = document.getElementById('traceOutput');
+      try {
+        const trace = await requestJson('/tool-call-trace.json');
+        output.textContent = JSON.stringify(trace, null, 2);
+      } catch (error) {
+        output.textContent = 'No trace available yet.';
+      }
+    }
+
+    function loadSampleData() {
+      document.getElementById('resumeText').value = `AI product manager with engineering background. Built AI Job Search Copilot using LLM, RAG, function calling, MCP, TypeScript, JavaScript, React, Node, API design, SQL, prompt engineering, and agent approval workflows. Strong English communication from global company experience.`;
+      document.getElementById('websiteUrl').value = 'https://marshallzzz.com';
+      document.getElementById('githubUrl').value = 'https://github.com/yzhan146/AIJobSearchCopilot';
+      state.jobs = [
+        {
+          title: 'AI Product Manager - LLM Platform',
+          company: 'Volcano Engine',
+          location: 'Beijing',
+          url: '',
+          description: 'Own roadmap for LLM platform, RAG tooling, agent workflow, prompt engineering, API integrations, user research, and enterprise AI product strategy. English communication preferred.'
+        },
+        {
+          title: 'Growth Product Manager',
+          company: 'Consumer App',
+          location: 'Shanghai',
+          url: '',
+          description: 'Responsible for growth strategy, funnel analytics, user lifecycle, and campaign operations. Fast-paced high pressure environment.'
+        },
+        {
+          title: 'AI Application Product Lead',
+          company: 'Startup',
+          location: 'Beijing',
+          url: '',
+          description: 'Build chatbot and copilot products with LLM, agent orchestration, function calling, data analytics, customer discovery, and roadmap ownership.'
+        }
+      ];
+      renderJobList();
+      setStatus('Loaded sample profile and 3 JDs.');
+    }
+
+    function clearAll() {
+      for (const id of ['resumeText', 'websiteUrl', 'githubUrl', 'jobTitle', 'company', 'location', 'jobUrl', 'jobDescription']) {
+        document.getElementById(id).value = '';
+      }
+      state.jobs = [];
+      state.analyses = [];
+      renderJobList();
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('jobResults').className = 'empty';
+      document.getElementById('jobResults').textContent = 'Run an analysis to see ranked JD cards.';
+      document.getElementById('jobDetail').className = 'empty';
+      document.getElementById('jobDetail').textContent = 'Select a ranked JD to view reasons, gaps, and resume improvements.';
+      setStatus('Cleared local UI state.');
+    }
+
+    function clearJobForm() {
+      for (const id of ['jobTitle', 'company', 'location', 'jobUrl', 'jobDescription']) {
+        document.getElementById(id).value = '';
+      }
+    }
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text);
+      }
+      return response.json();
+    }
+
+    function readInput(id) {
+      return document.getElementById(id).value.trim();
     }
 
     function setStatus(message) {
       document.getElementById('status').textContent = message;
     }
 
-    function setButtonsDisabled(disabled) {
-      for (const button of document.querySelectorAll('button')) {
-        button.disabled = disabled;
-      }
+    function setBusy(isBusy) {
+      document.getElementById('analyzeButton').disabled = isBusy;
     }
 
     function escapeHtml(value) {
-      return String(value)
+      return String(value ?? '')
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
@@ -294,7 +651,7 @@
         .replaceAll("'", '&#039;');
     }
 
-    refreshAll();
+    renderJobList();
   </script>
 </body>
 </html>

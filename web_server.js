@@ -27,6 +27,200 @@ function writeJsonArray(filePath, list){
   fs.writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf8');
 }
 
+function readRequestJson(req){
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk;
+      if (body.length > 1024 * 1024) {
+        reject(new Error('Request body is too large'));
+        req.destroy();
+      }
+    });
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(body || '{}'));
+      } catch (error) {
+        reject(error);
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+function analyzeJds(payload){
+  const profile = payload?.profile || {};
+  const resumeText = readOptionalString(profile.resumeText, 'profile.resumeText');
+  const websiteUrl = readOptionalString(profile.websiteUrl, 'profile.websiteUrl');
+  const githubUrl = readOptionalString(profile.githubUrl, 'profile.githubUrl');
+  const profileText = [resumeText, websiteUrl, githubUrl].filter(Boolean).join('\n').toLowerCase();
+
+  if (!profileText.trim()) {
+    throw new Error('At least one supported background source is required: resume, personal website, or GitHub.');
+  }
+
+  const unknownProfileKeys = Object.keys(profile).filter((key) => !['resumeText', 'websiteUrl', 'githubUrl'].includes(key));
+  if (unknownProfileKeys.length > 0) {
+    throw new Error(`Unsupported profile fields: ${unknownProfileKeys.join(', ')}. Only resume, personal website, and GitHub are supported.`);
+  }
+
+  if (!Array.isArray(payload?.jobs)) {
+    throw new Error('jobs must be an array.');
+  }
+
+  if (payload.jobs.length < 1 || payload.jobs.length > 10) {
+    throw new Error('Submit between 1 and 10 JDs per analysis batch.');
+  }
+
+  const analyses = payload.jobs.map((job, index) => analyzeOneJob(job, index, profileText));
+  analyses.sort((a, b) => b.successProbability - a.successProbability);
+  analyses.forEach((analysis, index) => {
+    analysis.rank = index + 1;
+  });
+
+  const summary = {
+    totalJobs: analyses.length,
+    topJob: analyses[0]?.title || '',
+    averageSuccessProbability: Math.round(
+      analyses.reduce((sum, item) => sum + item.successProbability, 0) / analyses.length
+    ),
+    strongCount: analyses.filter((item) => item.level === 'Strong').length,
+    mediumCount: analyses.filter((item) => item.level === 'Medium').length,
+    lowCount: analyses.filter((item) => item.level === 'Low').length,
+    recommendation: analyses[0]
+      ? `Prioritize ${analyses[0].title}; it has the highest profile-to-JD success probability in this batch.`
+      : 'Add at least one JD to analyze.'
+  };
+
+  const result = {
+    generatedAt: new Date().toISOString(),
+    summary,
+    analyses
+  };
+
+  fs.mkdirSync(PUBLIC_DIR, { recursive: true });
+  fs.writeFileSync(path.join(PUBLIC_DIR, 'ui-analysis-results.json'), JSON.stringify(result, null, 2), 'utf8');
+  return result;
+}
+
+function analyzeOneJob(rawJob, index, profileText){
+  if (!rawJob || typeof rawJob !== 'object') {
+    throw new Error(`jobs[${index}] must be an object.`);
+  }
+
+  const title = readRequiredString(rawJob.title, `jobs[${index}].title`);
+  const company = readOptionalString(rawJob.company, `jobs[${index}].company`) || 'Unknown company';
+  const location = readOptionalString(rawJob.location, `jobs[${index}].location`) || 'Unknown location';
+  const url = readOptionalString(rawJob.url, `jobs[${index}].url`);
+  const description = readRequiredString(rawJob.description, `jobs[${index}].description`);
+  const jdText = `${title}\n${company}\n${location}\n${description}`.toLowerCase();
+
+  const aiTerms = findTerms(jdText, ['ai', 'llm', 'large language model', 'rag', 'agent', 'copilot', 'prompt', 'mcp', 'model', 'chatbot']);
+  const productTerms = findTerms(jdText, ['product', 'roadmap', 'user research', '需求', '产品', '增长', 'strategy', 'market']);
+  const skillTerms = findTerms(jdText, ['typescript', 'javascript', 'python', 'sql', 'react', 'node', 'api', 'data', 'analytics', 'prompt engineering', 'function calling']);
+  const riskTerms = findTerms(jdText, ['996', 'fast-paced', 'high pressure', '加班', '抗压', '出差', 'on-call']);
+
+  const matchedAi = aiTerms.filter((term) => profileText.includes(term));
+  const matchedProduct = productTerms.filter((term) => profileText.includes(term));
+  const matchedSkills = skillTerms.filter((term) => profileText.includes(term));
+  const missingSkills = skillTerms.filter((term) => !profileText.includes(term)).slice(0, 5);
+  const missingAi = aiTerms.filter((term) => !profileText.includes(term)).slice(0, 3);
+
+  const hasEnglish = /english|英语|foreign|global|international/i.test(profileText);
+  const wantsEnglish = /english|英语|global|international|海外/i.test(jdText);
+  const hasBeijing = /beijing|北京/i.test(jdText);
+
+  let score = 38;
+  score += Math.min(24, matchedAi.length * 8);
+  score += Math.min(18, matchedProduct.length * 6);
+  score += Math.min(18, matchedSkills.length * 5);
+  score += hasEnglish && wantsEnglish ? 8 : 0;
+  score += hasBeijing ? 4 : 0;
+  score -= Math.min(12, missingSkills.length * 3);
+  score -= Math.min(10, riskTerms.length * 5);
+  score = Math.max(12, Math.min(96, Math.round(score)));
+
+  const level = score >= 75 ? 'Strong' : score >= 55 ? 'Medium' : 'Low';
+  const rankingReasons = buildRankingReasons({
+    matchedAi,
+    matchedProduct,
+    matchedSkills,
+    missingSkills,
+    riskTerms,
+    hasEnglish,
+    wantsEnglish,
+    hasBeijing
+  });
+
+  return {
+    rank: index + 1,
+    title,
+    company,
+    location,
+    url,
+    successProbability: score,
+    level,
+    tags: [...new Set([...matchedAi, ...matchedProduct, ...matchedSkills])].slice(0, 8),
+    rankingReasons,
+    matchedSkills,
+    missingSkills,
+    risks: riskTerms.length > 0 ? riskTerms.map((term) => `JD mentions ${term}, review workload and expectation risk.`) : ['No obvious workload risk keywords detected.'],
+    resumeImprovements: buildResumeImprovements({ matchedAi, matchedProduct, matchedSkills, missingSkills, missingAi, title }),
+    interviewTalkingPoints: buildInterviewTalkingPoints({ matchedAi, matchedProduct, matchedSkills, title })
+  };
+}
+
+function buildRankingReasons({ matchedAi, matchedProduct, matchedSkills, missingSkills, riskTerms, hasEnglish, wantsEnglish, hasBeijing }){
+  const reasons = [];
+  if (matchedAi.length > 0) reasons.push(`AI fit is supported by ${matchedAi.slice(0, 3).join(', ')}.`);
+  if (matchedProduct.length > 0) reasons.push(`Product background matches ${matchedProduct.slice(0, 3).join(', ')} requirements.`);
+  if (matchedSkills.length > 0) reasons.push(`Skill overlap includes ${matchedSkills.slice(0, 4).join(', ')}.`);
+  if (hasEnglish && wantsEnglish) reasons.push('English/global experience can be used as a differentiator.');
+  if (hasBeijing) reasons.push('Location appears compatible with Beijing-focused job search.');
+  if (missingSkills.length > 0) reasons.push(`Main gaps to address: ${missingSkills.slice(0, 3).join(', ')}.`);
+  if (riskTerms.length > 0) reasons.push(`Risk keywords detected: ${riskTerms.join(', ')}.`);
+  return reasons.slice(0, 5);
+}
+
+function buildResumeImprovements({ matchedAi, matchedProduct, matchedSkills, missingSkills, missingAi, title }){
+  const suggestions = [];
+  if (matchedAi.length > 0) suggestions.push(`Move AI project experience closer to the top and explicitly mention ${matchedAi.slice(0, 3).join(', ')} for ${title}.`);
+  if (matchedProduct.length > 0) suggestions.push(`Rewrite product experience bullets around ${matchedProduct.slice(0, 3).join(', ')} outcomes, not just responsibilities.`);
+  if (matchedSkills.length > 0) suggestions.push(`Add a skills line that highlights ${matchedSkills.slice(0, 4).join(', ')} because the JD asks for them directly.`);
+  if (missingSkills.length > 0) suggestions.push(`If truthful, add evidence for ${missingSkills.slice(0, 3).join(', ')}; otherwise prepare an interview explanation instead of overstating.`);
+  if (missingAi.length > 0) suggestions.push(`Consider adding a concise project bullet showing exposure to ${missingAi.slice(0, 2).join(', ')} if you have real experience.`);
+  suggestions.push('Use JD language naturally in resume bullets so recruiter screening can connect your background to the role.');
+  return suggestions.slice(0, 5);
+}
+
+function buildInterviewTalkingPoints({ matchedAi, matchedProduct, matchedSkills, title }){
+  const points = [];
+  if (matchedAi.length > 0) points.push(`Explain how you used ${matchedAi.slice(0, 2).join(' and ')} in a practical product workflow.`);
+  if (matchedProduct.length > 0) points.push(`Prepare one product decision story for ${title}: user problem, tradeoff, metric, and outcome.`);
+  if (matchedSkills.length > 0) points.push(`Connect engineering fluency (${matchedSkills.slice(0, 3).join(', ')}) to better AI product execution.`);
+  points.push('Be ready to discuss why deterministic validation and human approval make LLM agents safer.');
+  return points.slice(0, 4);
+}
+
+function findTerms(text, terms){
+  return terms.filter((term) => text.includes(term.toLowerCase()));
+}
+
+function readRequiredString(value, fieldName){
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new Error(`${fieldName} must be a non-empty string.`);
+  }
+  return value.trim();
+}
+
+function readOptionalString(value, fieldName){
+  if (value === undefined || value === null || value === '') return '';
+  if (typeof value !== 'string') {
+    throw new Error(`${fieldName} must be a string when provided.`);
+  }
+  return value.trim();
+}
+
 async function runPlannerDemo(goal){
   const allowedGoals = new Set(['shortlist', 'apply', 'explain']);
   if (!allowedGoals.has(goal)) {
@@ -62,6 +256,17 @@ const server = http.createServer(async (req, res) => {
       const content = fs.readFileSync(indexPath, 'utf8');
       res.setHeader('Content-Type', 'text/html');
       res.end(content);
+      return;
+    }
+
+    if (pathname === '/api/analyze-jds' && method === 'POST'){
+      try {
+        const payload = await readRequestJson(req);
+        sendJson(res, analyzeJds(payload));
+      } catch (error) {
+        res.statusCode = 400;
+        sendJson(res, { ok: false, error: String(error) });
+      }
       return;
     }
 

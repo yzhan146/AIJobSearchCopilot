@@ -99,6 +99,8 @@ http://localhost:8080/
 
 The demo console can run the mock planner locally, reset demo files, show trace entries, list pending approvals, approve a specific `actionId`, and rerun the apply demo to verify that the approved action executes as a queued mock result.
 
+The main UI now follows `docs/ui-improvement-prd.md`: users provide only resume text/file, personal website, or GitHub as background sources, submit 1-10 JDs, then receive a success-probability ranking, ranking reasons, and per-JD resume improvement suggestions. Agent trace and approval demos remain available as a secondary section.
+
 Run with OpenAI:
 
 ```bash
