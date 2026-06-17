@@ -139,6 +139,16 @@
       background: #fff7ed;
       color: #9a3412;
     }
+    .hint.error {
+      background: #fef2f2;
+      color: var(--red);
+      font-weight: 700;
+    }
+    .hint.success {
+      background: #ecfdf5;
+      color: var(--green);
+      font-weight: 700;
+    }
     .muted { color: var(--muted); }
     .row { display: flex; flex-wrap: wrap; gap: 10px; }
     .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
@@ -387,19 +397,25 @@
     document.getElementById('resumeFile').addEventListener('change', async (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
+      state.resumeFileName = file.name;
+      document.getElementById('resumeFileStatus').textContent = `Resume file selected: ${file.name}`;
+
       if (file.type && !file.type.startsWith('text') && !file.name.match(/\.(txt|md|csv|json)$/i)) {
-        setStatus('This prototype reads text-like resume files best. Please paste resume text if the file cannot be read.');
+        setStatus(`Resume file selected: ${file.name}. PDF/DOC parsing is not implemented locally yet, so optional resume text can improve analysis quality.`, 'warning');
         return;
       }
-      state.resumeFileName = file.name;
-      document.getElementById('resumeText').value = await file.text();
-      document.getElementById('resumeFileStatus').textContent = `Resume file selected: ${file.name}`;
-      setStatus(`Loaded resume text from ${file.name}.`);
+
+      try {
+        document.getElementById('resumeText').value = await file.text();
+        setStatus(`Loaded resume text from ${file.name}.`, 'success');
+      } catch (_error) {
+        setStatus(`Resume file selected: ${file.name}. Could not auto-read text, but the file requirement is satisfied.`, 'warning');
+      }
     });
 
     function addJob() {
       if (state.jobs.length >= 10) {
-        setStatus('You can submit at most 10 JDs in one batch.');
+        setStatus('You can submit at most 10 JDs in one batch.', 'error');
         return;
       }
 
@@ -407,14 +423,14 @@
       const validation = validateDraftJob(job);
 
       if (!validation.ok) {
-        setStatus(validation.message);
+        setStatus(validation.message, 'error');
         return;
       }
 
       state.jobs.push(job);
       clearJobForm();
       renderJobList();
-      setStatus(`Added JD ${state.jobs.length} / 10.`);
+      setStatus(`Added JD ${state.jobs.length} / 10.`, 'success');
     }
 
     function removeJob(index) {
@@ -434,18 +450,18 @@
       const hasDraftJob = draftJob.title || draftJob.description || draftJob.company || draftJob.location || draftJob.url;
 
       if (!profile.resumeFileName) {
-        setStatus('Resume File is required. Resume text, website, and GitHub are optional.');
+        setStatus('Resume File is required. Resume text, website, and GitHub are optional.', 'error');
         return;
       }
 
       if (hasDraftJob) {
         const validation = validateDraftJob(draftJob);
         if (!validation.ok) {
-          setStatus(validation.message);
+          setStatus(validation.message, 'error');
           return;
         }
         if (state.jobs.length >= 10) {
-          setStatus('You already have 10 JDs. Remove one before analyzing the current draft.');
+          setStatus('You already have 10 JDs. Remove one before analyzing the current draft.', 'error');
           return;
         }
         state.jobs.push(draftJob);
@@ -454,7 +470,7 @@
       }
 
       if (state.jobs.length < 1 || state.jobs.length > 10) {
-        setStatus('Add between 1 and 10 JDs before analyzing.');
+        setStatus('Add between 1 and 10 JDs before analyzing.', 'error');
         return;
       }
 
@@ -471,9 +487,9 @@
         renderDashboard(result.summary);
         renderResults();
         renderDetail(0);
-        setStatus('Analysis complete. Ranked by success probability.');
+        setStatus('Analysis complete. Ranked by success probability.', 'success');
       } catch (error) {
-        setStatus(`Analysis failed: ${error.message}`);
+        setStatus(`Analysis failed: ${error.message}`, 'error');
       } finally {
         setBusy(false);
       }
@@ -647,7 +663,7 @@
         }
       ];
       renderJobList();
-      setStatus('Loaded sample profile and 3 JDs.');
+      setStatus('Loaded sample profile and 3 JDs.', 'success');
     }
 
     function clearAll() {
@@ -727,7 +743,14 @@
       const response = await fetch(url, options);
       if (!response.ok) {
         const text = await response.text();
-        throw new Error(text);
+        let errorMessage = text;
+        try {
+          const parsed = JSON.parse(text);
+          if (parsed.error) {
+            errorMessage = parsed.error;
+          }
+        } catch (_parseError) {}
+        throw new Error(errorMessage);
       }
       return response.json();
     }
@@ -736,8 +759,16 @@
       return document.getElementById(id).value.trim();
     }
 
-    function setStatus(message) {
-      document.getElementById('status').textContent = message;
+    function setStatus(message, type = 'info') {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = type === 'error'
+        ? 'hint error'
+        : type === 'success'
+          ? 'hint success'
+          : type === 'warning'
+            ? 'hint warning'
+            : 'hint';
     }
 
     function setBusy(isBusy) {

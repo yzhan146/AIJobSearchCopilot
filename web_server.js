@@ -10,6 +10,8 @@ const WEB_DIR = path.join(process.cwd(), 'web');
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
 
+loadLocalEnvFiles();
+
 function sendJson(res, obj){
   res.setHeader('Content-Type','application/json');
   res.end(JSON.stringify(obj));
@@ -25,6 +27,28 @@ function readJsonArray(filePath){
 function writeJsonArray(filePath, list){
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(list, null, 2), 'utf8');
+}
+
+function loadLocalEnvFiles(){
+  for (const fileName of ['.env.local', '.env']) {
+    const filePath = path.join(process.cwd(), fileName);
+    if (!fs.existsSync(filePath)) continue;
+
+    const lines = fs.readFileSync(filePath, 'utf8').split(/\r?\n/);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+
+      const separator = trimmed.indexOf('=');
+      if (separator === -1) continue;
+
+      const key = trimmed.slice(0, separator).trim();
+      const value = trimmed.slice(separator + 1).trim().replace(/^['"]|['"]$/g, '');
+      if (key && process.env[key] === undefined) {
+        process.env[key] = value;
+      }
+    }
+  }
 }
 
 function readRequestJson(req){
