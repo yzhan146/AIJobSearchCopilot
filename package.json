@@ -15,9 +15,11 @@
     "web:serve": "node web_server.js",
     "demo:llm:gemini": "npm run build && node dist/index.js --llm gemini",
     "demo:llm:groq": "npm run build && node dist/index.js --llm groq",
+    "demo:llm:deepseek": "npm run build && node dist/index.js --llm deepseek",
     "experiment:prompt": "npm run build && node dist/experiments/runPromptExperiment.js --llm mock",
     "experiment:prompt:gemini": "npm run build && node dist/experiments/runPromptExperiment.js --llm gemini",
     "experiment:prompt:groq": "npm run build && node dist/experiments/runPromptExperiment.js --llm groq",
+    "experiment:prompt:deepseek": "npm run build && node dist/experiments/runPromptExperiment.js --llm deepseek",
     "eval:rag": "npm run build && node dist/experiments/runRetrievalEvaluation.js",
     "start": "node dist/index.js"
   },

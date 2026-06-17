@@ -36,6 +36,15 @@ export function createLlmClient(providerName?: string): LlmClient | undefined {
     });
   }
 
+  if (provider === "deepseek") {
+    return new OpenAiCompatibleLlmClient({
+      provider: "deepseek",
+      apiKey: readRequiredEnv("DEEPSEEK_API_KEY"),
+      model: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
+      endpoint: process.env.DEEPSEEK_ENDPOINT ?? "https://api.deepseek.com/v1/chat/completions"
+    });
+  }
+
   return new OpenAiLlmClient({
     apiKey: readRequiredEnv("OPENAI_API_KEY"),
     model: process.env.OPENAI_MODEL ?? "gpt-4o-mini"
@@ -53,7 +62,8 @@ function normalizeProvider(providerName?: string): LlmProviderName | undefined {
     normalized === "mock" ||
     normalized === "openai" ||
     normalized === "gemini" ||
-    normalized === "groq"
+    normalized === "groq" ||
+    normalized === "deepseek"
   ) {
     return normalized;
   }

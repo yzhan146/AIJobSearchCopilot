@@ -1,4 +1,4 @@
-export type LlmProviderName = "mock" | "openai" | "gemini" | "groq";
+export type LlmProviderName = "mock" | "openai" | "gemini" | "groq" | "deepseek";
 
 export type JsonGenerationRequest = {
   system: string;
