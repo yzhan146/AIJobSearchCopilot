@@ -45,9 +45,18 @@ export function createLlmClient(providerName?: string): LlmClient | undefined {
     });
   }
 
+  if (provider === "zhipu") {
+    return new OpenAiCompatibleLlmClient({
+      provider: "zhipu",
+      apiKey: readRequiredEnv("ZHIPU_API_KEY", "BIGMODEL_API_KEY"),
+      model: process.env.ZHIPU_MODEL ?? "glm-4.5-air",
+      endpoint: process.env.ZHIPU_ENDPOINT ?? "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+    });
+  }
+
   return new OpenAiLlmClient({
     apiKey: readRequiredEnv("OPENAI_API_KEY"),
-    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini"
+    model: process.env.OPENAI_MODEL ?? "gpt-5.5"
   });
 }
 
@@ -63,7 +72,8 @@ function normalizeProvider(providerName?: string): LlmProviderName | undefined {
     normalized === "openai" ||
     normalized === "gemini" ||
     normalized === "groq" ||
-    normalized === "deepseek"
+    normalized === "deepseek" ||
+    normalized === "zhipu"
   ) {
     return normalized;
   }

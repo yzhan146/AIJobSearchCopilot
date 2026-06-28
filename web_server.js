@@ -7,6 +7,8 @@ import { promisify } from 'node:util';
 const PORT = process.env.WEB_PORT ? Number(process.env.WEB_PORT) : 8080;
 const PUBLIC_DIR = path.join(process.cwd(), 'exports');
 const WEB_DIR = path.join(process.cwd(), 'web');
+const RESUME_REWRITE_DIR = path.join(PUBLIC_DIR, 'resume-rewrites');
+const MAX_REQUEST_BYTES = 15 * 1024 * 1024;
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
 
@@ -56,7 +58,7 @@ function readRequestJson(req){
     let body = '';
     req.on('data', (chunk) => {
       body += chunk;
-      if (body.length > 1024 * 1024) {
+      if (body.length > MAX_REQUEST_BYTES) {
         reject(new Error('Request body is too large'));
         req.destroy();
       }
@@ -78,14 +80,18 @@ async function analyzeJds(payload){
   const resumeText = readOptionalString(profile.resumeText, 'profile.resumeText');
   const websiteUrl = readOptionalString(profile.websiteUrl, 'profile.websiteUrl');
   const githubUrl = readOptionalString(profile.githubUrl, 'profile.githubUrl');
+  const resumeFileText = await extractResumeFileText(profile.resumeFile, resumeFileName);
   const llmEnabled = isLlmEnabled();
-  const profileText = [resumeFileName, resumeText, websiteUrl, githubUrl].filter(Boolean).join('\n').toLowerCase();
+  const profileSourceText = [resumeFileName, resumeFileText, resumeText, websiteUrl, githubUrl]
+    .filter(Boolean)
+    .join('\n\n');
+  const profileText = profileSourceText.toLowerCase();
 
   if (!resumeFileName.trim()) {
     throw new Error('Resume File is required. Resume text, personal website, and GitHub are optional background sources.');
   }
 
-  const unknownProfileKeys = Object.keys(profile).filter((key) => !['resumeFileName', 'resumeText', 'websiteUrl', 'githubUrl'].includes(key));
+  const unknownProfileKeys = Object.keys(profile).filter((key) => !['resumeFileName', 'resumeText', 'websiteUrl', 'githubUrl', 'resumeFile'].includes(key));
   if (unknownProfileKeys.length > 0) {
     throw new Error(`Unsupported profile fields: ${unknownProfileKeys.join(', ')}. Only resume, personal website, and GitHub are supported.`);
   }
@@ -106,6 +112,29 @@ async function analyzeJds(payload){
   analyses.forEach((analysis, index) => {
     analysis.rank = index + 1;
   });
+
+  if (shouldUseApiJobFeedback()) {
+    for (const analysis of analyses) {
+      const job = normalizedJobs.find((item) => item.title === analysis.title && item.company === analysis.company) || analysis;
+      const feedback = await generateModelJobFeedback({
+        profileSourceText,
+        profile: { resumeFileName, resumeText, websiteUrl, githubUrl },
+        job,
+        baselineAnalysis: analysis
+      });
+      Object.assign(analysis, feedback);
+      analysis.rewrittenResumePdfUrl = await writeRewrittenResumePdf(analysis);
+    }
+  } else {
+    for (const analysis of analyses) {
+      analysis.rewriteSource = 'not_configured';
+      analysis.contentIntegrityNotes = [
+        'No API-backed LLM provider is configured, so this run used deterministic local scoring only.',
+        'Set LLM_PROVIDER=zhipu and ZHIPU_API_KEY in .env.local to generate rewritten resume PDFs with Zhipu.'
+      ];
+      analysis.gaps = analysis.missingSkills || [];
+    }
+  }
 
   const summary = {
     totalJobs: analyses.length,
@@ -130,6 +159,41 @@ async function analyzeJds(payload){
   fs.mkdirSync(PUBLIC_DIR, { recursive: true });
   fs.writeFileSync(path.join(PUBLIC_DIR, 'ui-analysis-results.json'), JSON.stringify(result, null, 2), 'utf8');
   return result;
+}
+
+async function extractResumeFileText(resumeFile, resumeFileName){
+  if (!resumeFile) return '';
+  if (!resumeFile || typeof resumeFile !== 'object') {
+    throw new Error('profile.resumeFile must be an object when provided.');
+  }
+
+  const name = readOptionalString(resumeFile.name, 'profile.resumeFile.name') || resumeFileName;
+  const type = readOptionalString(resumeFile.type, 'profile.resumeFile.type');
+  const dataBase64 = readOptionalString(resumeFile.dataBase64, 'profile.resumeFile.dataBase64');
+  if (!dataBase64) return '';
+
+  const buffer = Buffer.from(dataBase64, 'base64');
+  const lowerName = name.toLowerCase();
+  if (type === 'application/pdf' || lowerName.endsWith('.pdf')) {
+    const { PDFParse } = await import('pdf-parse');
+    const parser = new PDFParse({ data: buffer });
+    try {
+      const result = await parser.getText();
+      const text = String(result?.text || '').replace(/\s+/g, ' ').trim();
+      if (!text) {
+        throw new Error('Could not extract readable text from the PDF resume. If it is scanned, paste OCR text into Resume text.');
+      }
+      return text.slice(0, 20000);
+    } finally {
+      await parser.destroy();
+    }
+  }
+
+  if (type.startsWith('text/') || /\.(txt|md|csv|json)$/i.test(name)) {
+    return buffer.toString('utf8').slice(0, 20000);
+  }
+
+  return '';
 }
 
 async function normalizeJobInput(rawJob, index, llmEnabled){
@@ -297,6 +361,291 @@ function buildInterviewTalkingPoints({ matchedAi, matchedProduct, matchedSkills,
   return points.slice(0, 4);
 }
 
+function shouldUseApiJobFeedback(){
+  const provider = String(process.env.LLM_PROVIDER || '').trim().toLowerCase();
+  return Boolean(getFeedbackModelConfig(provider));
+}
+
+async function generateModelJobFeedback({ profileSourceText, profile, job, baselineAnalysis }){
+  const config = getFeedbackModelConfig();
+  if (!config) {
+    throw new Error('No API-backed LLM provider is configured.');
+  }
+  const system = [
+    'You are a careful job-search copilot and resume editor.',
+    'You must only reuse facts present in the candidate resume/profile text or the supplied URLs.',
+    'Never invent employers, titles, dates, degrees, metrics, tools, certifications, projects, or achievements.',
+    'If a JD asks for something not evidenced in the profile, mark it as a gap instead of adding it to the rewritten resume.',
+    'Return one strict JSON object and no markdown fences.'
+  ].join(' ');
+  const user = JSON.stringify({
+    task: 'Analyze one JD against one candidate profile, then produce interview feedback and a JD-targeted resume rewrite.',
+    requiredOutputShape: {
+      successProbability: 'integer 0-100',
+      level: 'Strong | Medium | Low',
+      rankingReasons: ['clear reason grounded in resume and JD'],
+      resumeImprovements: ['specific edit recommendation without inventing facts'],
+      resumeRewritePlan: ['how to reorder or re-narrate existing content'],
+      rewrittenResume: {
+        title: 'candidate or target role title',
+        summary: 'short summary using only evidenced facts',
+        sections: [
+          {
+            heading: 'section heading',
+            bullets: ['resume bullet using only original facts']
+          }
+        ]
+      },
+      gaps: ['missing or weak evidence for this JD'],
+      interviewQuestions: [
+        {
+          question: 'likely interview question',
+          answer: 'answer using only evidenced background; say what to learn if evidence is missing',
+          focusArea: 'skill/product/AI/risk area'
+        }
+      ],
+      contentIntegrityNotes: ['brief notes proving no new facts were added']
+    },
+    candidateProfile: {
+      resumeFileName: profile.resumeFileName,
+      websiteUrl: profile.websiteUrl,
+      githubUrl: profile.githubUrl,
+      text: profileSourceText.slice(0, 24000)
+    },
+    job,
+    deterministicBaseline: baselineAnalysis
+  });
+
+  const requestBody = {
+    model: config.model,
+    temperature: 0.2,
+    response_format: { type: 'json_object' },
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user }
+    ],
+    ...(config.provider === 'zhipu' ? { thinking: { type: 'disabled' } } : {})
+  };
+
+  const response = await fetch(config.endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${config.apiKey}`
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`${config.provider} feedback request failed (${response.status}): ${errorBody}`);
+  }
+
+  const payload = await response.json();
+  const content = payload?.choices?.[0]?.message?.content;
+  if (typeof content !== 'string' || !content.trim()) {
+    throw new Error(`${config.provider} feedback response did not include JSON content.`);
+  }
+
+  const parsed = JSON.parse(content);
+  return normalizeOpenAiFeedback(parsed);
+}
+
+function getFeedbackModelConfig(providerOverride){
+  const provider = String(providerOverride || process.env.LLM_PROVIDER || '').trim().toLowerCase();
+  if (provider === 'openai' && process.env.OPENAI_API_KEY) {
+    return {
+      provider,
+      apiKey: process.env.OPENAI_API_KEY,
+      model: process.env.OPENAI_MODEL || 'gpt-5.5',
+      endpoint: 'https://api.openai.com/v1/chat/completions'
+    };
+  }
+
+  const zhipuApiKey = process.env.ZHIPU_API_KEY || process.env.BIGMODEL_API_KEY;
+  if (provider === 'zhipu' && zhipuApiKey) {
+    return {
+      provider,
+      apiKey: zhipuApiKey,
+      model: process.env.ZHIPU_MODEL || 'glm-4.5-air',
+      endpoint: process.env.ZHIPU_ENDPOINT || 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
+    };
+  }
+
+  return undefined;
+}
+
+function normalizeOpenAiFeedback(value){
+  if (!value || typeof value !== 'object') {
+    throw new Error('OpenAI feedback must be an object.');
+  }
+
+  const successProbability = clampNumber(Number(value.successProbability), 0, 100);
+  const level = ['Strong', 'Medium', 'Low'].includes(value.level)
+    ? value.level
+    : successProbability >= 75
+      ? 'Strong'
+      : successProbability >= 55
+        ? 'Medium'
+        : 'Low';
+
+  return {
+    rewriteSource: 'openai',
+    successProbability,
+    level,
+    rankingReasons: readStringList(value.rankingReasons, 'rankingReasons'),
+    resumeImprovements: readStringList(value.resumeImprovements, 'resumeImprovements'),
+    resumeRewritePlan: readStringList(value.resumeRewritePlan, 'resumeRewritePlan'),
+    rewrittenResume: normalizeRewrittenResume(value.rewrittenResume),
+    gaps: readStringList(value.gaps, 'gaps'),
+    interviewQuestions: readInterviewQuestions(value.interviewQuestions),
+    contentIntegrityNotes: readStringList(value.contentIntegrityNotes, 'contentIntegrityNotes')
+  };
+}
+
+function normalizeRewrittenResume(value){
+  if (!value || typeof value !== 'object') {
+    throw new Error('rewrittenResume must be an object.');
+  }
+
+  const sections = Array.isArray(value.sections) ? value.sections : [];
+  return {
+    title: typeof value.title === 'string' && value.title.trim() ? value.title.trim() : 'Targeted Resume Draft',
+    summary: typeof value.summary === 'string' ? value.summary.trim() : '',
+    sections: sections.map((section, index) => {
+      if (!section || typeof section !== 'object') {
+        throw new Error(`rewrittenResume.sections[${index}] must be an object.`);
+      }
+      return {
+        heading: typeof section.heading === 'string' && section.heading.trim()
+          ? section.heading.trim()
+          : `Section ${index + 1}`,
+        bullets: readStringList(section.bullets, `rewrittenResume.sections[${index}].bullets`)
+      };
+    }).filter((section) => section.bullets.length > 0)
+  };
+}
+
+function readInterviewQuestions(value){
+  if (!Array.isArray(value)) return [];
+  return value.map((item, index) => {
+    if (!item || typeof item !== 'object') {
+      throw new Error(`interviewQuestions[${index}] must be an object.`);
+    }
+    return {
+      question: readRequiredPlainString(item.question, `interviewQuestions[${index}].question`),
+      answer: readRequiredPlainString(item.answer, `interviewQuestions[${index}].answer`),
+      focusArea: readRequiredPlainString(item.focusArea, `interviewQuestions[${index}].focusArea`)
+    };
+  }).slice(0, 10);
+}
+
+function readStringList(value, fieldName){
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      if (typeof item !== 'string') {
+        throw new Error(`${fieldName}[${index}] must be a string.`);
+      }
+      return item.trim();
+    })
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
+function readRequiredPlainString(value, fieldName){
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error(`${fieldName} must be a non-empty string.`);
+  }
+  return value.trim();
+}
+
+async function writeRewrittenResumePdf(analysis){
+  const resume = analysis.rewrittenResume;
+  if (!resume || !Array.isArray(resume.sections) || resume.sections.length === 0) {
+    return '';
+  }
+
+  const { default: PDFDocument } = await import('pdfkit');
+  fs.mkdirSync(RESUME_REWRITE_DIR, { recursive: true });
+  const fileName = `${safeFilePart(analysis.rank)}-${safeFilePart(analysis.title)}.pdf`;
+  const filePath = path.join(RESUME_REWRITE_DIR, fileName);
+
+  await new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 48, size: 'A4' });
+    const stream = fs.createWriteStream(filePath);
+    stream.on('finish', resolve);
+    stream.on('error', reject);
+    doc.on('error', reject);
+    doc.pipe(stream);
+    applyReadableFont(doc);
+
+    doc.fontSize(18).text(resume.title || `${analysis.title} Resume Draft`, { bold: true });
+    doc.moveDown(0.35);
+    doc.fontSize(10).fillColor('#555555').text(`Target role: ${analysis.title} | ${analysis.company} | ${analysis.location}`);
+    doc.moveDown();
+    doc.fillColor('#111111').fontSize(11).text('Integrity note: This draft must only reorder and re-narrate facts from the submitted resume/profile. Verify every bullet before use.');
+    if (resume.summary) {
+      doc.moveDown();
+      doc.fontSize(13).text('Summary');
+      doc.moveDown(0.2);
+      doc.fontSize(10.5).text(resume.summary, { lineGap: 3 });
+    }
+
+    for (const section of resume.sections) {
+      doc.moveDown();
+      doc.fontSize(13).fillColor('#111111').text(section.heading);
+      doc.moveDown(0.2);
+      for (const bullet of section.bullets) {
+        doc.fontSize(10.5).fillColor('#222222').text(`• ${bullet}`, { indent: 8, lineGap: 3 });
+      }
+    }
+
+    if (Array.isArray(analysis.contentIntegrityNotes) && analysis.contentIntegrityNotes.length > 0) {
+      doc.moveDown();
+      doc.fontSize(13).fillColor('#111111').text('Content Integrity Notes');
+      doc.moveDown(0.2);
+      for (const note of analysis.contentIntegrityNotes.slice(0, 6)) {
+        doc.fontSize(9.5).fillColor('#555555').text(`• ${note}`, { indent: 8, lineGap: 2 });
+      }
+    }
+
+    doc.end();
+  });
+
+  return `/resume-rewrites/${encodeURIComponent(fileName)}`;
+}
+
+function applyReadableFont(doc){
+  const candidates = [
+    'C:/Windows/Fonts/msyh.ttc',
+    'C:/Windows/Fonts/simhei.ttf',
+    'C:/Windows/Fonts/simsun.ttc',
+    'C:/Windows/Fonts/arial.ttf'
+  ];
+  for (const fontPath of candidates) {
+    try {
+      if (fs.existsSync(fontPath)) {
+        doc.font(fontPath);
+        return;
+      }
+    } catch (_error) {}
+  }
+}
+
+function safeFilePart(value){
+  return String(value || 'resume')
+    .replace(/[^a-z0-9\u4e00-\u9fff-]+/gi, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80) || 'resume';
+}
+
+function clampNumber(value, min, max){
+  if (!Number.isFinite(value)) return min;
+  return Math.max(min, Math.min(max, Math.round(value)));
+}
+
 function findTerms(text, terms){
   return terms.filter((term) => text.includes(term.toLowerCase()));
 }
@@ -319,6 +668,16 @@ function readOptionalString(value, fieldName){
 function isLlmEnabled(){
   const provider = String(process.env.LLM_PROVIDER || '').trim().toLowerCase();
   return Boolean(provider && provider !== 'none' && provider !== 'false' && provider !== 'mock');
+}
+
+function readConfiguredModelName(){
+  const provider = String(process.env.LLM_PROVIDER || '').trim().toLowerCase();
+  if (provider === 'zhipu') return process.env.ZHIPU_MODEL || 'glm-4.5-air';
+  if (provider === 'openai') return process.env.OPENAI_MODEL || 'gpt-5.5';
+  if (provider === 'deepseek') return process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+  if (provider === 'gemini') return process.env.GEMINI_MODEL || 'gemini-2.0-flash-lite';
+  if (provider === 'groq') return process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
+  return null;
 }
 
 async function runPlannerDemo(goal){
@@ -360,9 +719,13 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname === '/api/config'){
+      const feedbackConfig = getFeedbackModelConfig();
       sendJson(res, {
         llmEnabled: isLlmEnabled(),
-        llmProvider: process.env.LLM_PROVIDER || null
+        llmProvider: process.env.LLM_PROVIDER || null,
+        apiFeedbackConfigured: shouldUseApiJobFeedback(),
+        apiFeedbackProvider: feedbackConfig?.provider || null,
+        apiFeedbackModel: feedbackConfig?.model || readConfiguredModelName()
       });
       return;
     }
@@ -425,6 +788,20 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/pending-approvals.json'){
       const pendingPath = path.join(PUBLIC_DIR, 'pending-approvals.json');
       sendJson(res, readJsonArray(pendingPath));
+      return;
+    }
+
+    if (pathname.startsWith('/resume-rewrites/')){
+      const fileName = path.basename(decodeURIComponent(pathname.slice('/resume-rewrites/'.length)));
+      const filePath = path.join(RESUME_REWRITE_DIR, fileName);
+      if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+        res.statusCode = 404;
+        res.end('Not found');
+        return;
+      }
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${fileName.replace(/"/g, '')}"`);
+      fs.createReadStream(filePath).pipe(res);
       return;
     }
 

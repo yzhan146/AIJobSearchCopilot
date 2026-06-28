@@ -270,10 +270,10 @@
 </head>
 <body>
   <header>
-    <span class="tag">Resume + Website + GitHub · Up to 10 JDs</span>
-    <h1>Rank job descriptions by success probability.</h1>
+    <span class="tag">PDF Resume + JD Links + GPT Feedback</span>
+    <h1>Tailor your resume to each target role.</h1>
     <div class="hero-subtitle">
-      Upload your background, submit a small JD batch, and get a simple ranked shortlist with reasons and resume improvement suggestions for each role.
+      Upload your PDF resume, submit JD links or JD text, and get success probability, targeted resume edits, a rewritten PDF draft, gaps, and interview prep for each role.
     </div>
   </header>
 
@@ -288,8 +288,8 @@
         </div>
 
         <label for="resumeFile">Resume file <span class="required">*</span></label>
-        <input id="resumeFile" type="file" accept=".txt,.md,.csv,.json,.pdf,.doc,.docx" />
-        <div id="resumeFileStatus" class="hint">Required. For this local prototype, plain text/markdown files work best. Resume text below is optional.</div>
+        <input id="resumeFile" type="file" accept=".pdf,.txt,.md,.csv,.json" />
+        <div id="resumeFileStatus" class="hint">Required. PDF is supported for the new milestone. Text-like files can also be read locally.</div>
 
         <label for="resumeText">Resume text <span class="optional">optional supplement</span></label>
         <textarea id="resumeText" placeholder="Optional: paste extra resume, portfolio summary, or project bullets here..."></textarea>
@@ -305,7 +305,7 @@
         <div class="panel-header">
           <div>
             <h2><span class="step">2</span> JD Submission</h2>
-            <p>Add 1-10 job descriptions. JD URL can stand alone only when LLM-backed extraction is enabled.</p>
+            <p>Add 1-10 job descriptions. With an API provider enabled, JD URL can stand alone; otherwise paste title and JD text.</p>
           </div>
           <span id="jdCount" class="count-pill">0 / 10</span>
         </div>
@@ -367,9 +367,9 @@
       </div>
 
       <div class="panel">
-        <h2><span class="step">5</span> Resume Advice for Every JD</h2>
-        <p>Each submitted JD gets its own ranking reasons, gaps, and resume improvement suggestions.</p>
-        <div id="jobDetail" class="empty">Run an analysis to see resume advice for every JD.</div>
+        <h2><span class="step">5</span> Role Feedback + Rewritten Resume</h2>
+        <p>Each submitted JD gets ranking reasons, rewrite guidance, a PDF draft when Zhipu/OpenAI is configured, gaps, and interview prep.</p>
+        <div id="jobDetail" class="empty">Run an analysis to see role feedback for every JD.</div>
       </div>
     </section>
 
@@ -391,17 +391,23 @@
       selectedIndex: 0,
       llmEnabled: false,
       llmProvider: null,
-      resumeFileName: ''
+      resumeFileName: '',
+      resumeFile: null
     };
 
     document.getElementById('resumeFile').addEventListener('change', async (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
       state.resumeFileName = file.name;
+      state.resumeFile = {
+        name: file.name,
+        type: file.type || inferFileType(file.name),
+        dataBase64: await readFileAsBase64(file)
+      };
       document.getElementById('resumeFileStatus').textContent = `Resume file selected: ${file.name}`;
 
-      if (file.type && !file.type.startsWith('text') && !file.name.match(/\.(txt|md|csv|json)$/i)) {
-        setStatus(`Resume file selected: ${file.name}. PDF/DOC parsing is not implemented locally yet, so optional resume text can improve analysis quality.`, 'warning');
+      if (file.name.match(/\.pdf$/i) || file.type === 'application/pdf') {
+        setStatus(`Loaded ${file.name}. The server will extract PDF text during analysis.`, 'success');
         return;
       }
 
@@ -442,6 +448,7 @@
     async function analyzeBatch() {
       const profile = {
         resumeFileName: state.resumeFileName,
+        resumeFile: state.resumeFile,
         resumeText: readInput('resumeText'),
         websiteUrl: readInput('websiteUrl'),
         githubUrl: readInput('githubUrl')
@@ -587,11 +594,20 @@
           </div>
 
           <div class="detail-section">
+            <h3>Rewritten resume PDF</h3>
+            ${job.rewrittenResumePdfUrl
+              ? `<p><a class="tag" href="${escapeHtml(job.rewrittenResumePdfUrl)}" target="_blank" rel="noopener">Open rewritten PDF draft</a></p>`
+              : `<p class="muted">${escapeHtml((job.contentIntegrityNotes || [])[0] || 'Configure Zhipu or OpenAI to generate a rewritten PDF draft.')}</p>`}
+            ${(job.resumeRewritePlan || []).length ? `<h3 style="margin-top:14px;">Rewrite plan</h3>${renderList(job.resumeRewritePlan)}` : ''}
+          </div>
+
+          <div class="detail-section">
             <h3>Matched skills and gaps</h3>
             <div class="row">
               ${(job.matchedSkills || []).map((skill) => `<span class="tag">${escapeHtml(skill)}</span>`).join('') || '<span class="muted">No direct skill matches detected.</span>'}
             </div>
-            <p><strong>Gaps:</strong> ${(job.missingSkills || []).map(escapeHtml).join(', ') || 'No major gaps detected.'}</p>
+            <p><strong>Skill gaps:</strong> ${(job.missingSkills || []).map(escapeHtml).join(', ') || 'No major skill gaps detected.'}</p>
+            ${(job.gaps || []).length ? `<h3 style="margin-top:14px;">Current gaps for this role</h3>${renderList(job.gaps)}` : ''}
           </div>
 
           <div class="detail-section">
@@ -600,8 +616,13 @@
           </div>
 
           <div class="detail-section">
-            <h3>Interview talking points</h3>
-            ${renderList(job.interviewTalkingPoints)}
+            <h3>Likely interview questions and answers</h3>
+            ${(job.interviewQuestions || []).length ? renderInterviewQuestions(job.interviewQuestions) : renderList(job.interviewTalkingPoints)}
+          </div>
+
+          <div class="detail-section">
+            <h3>No-fabrication check</h3>
+            ${renderList(job.contentIntegrityNotes)}
           </div>
         </article>
       `;
@@ -609,6 +630,16 @@
 
     function renderList(items = []) {
       return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+    }
+
+    function renderInterviewQuestions(items = []) {
+      return `<ul>${items.map((item) => `
+        <li>
+          <strong>${escapeHtml(item.question)}</strong>
+          <p>${escapeHtml(item.answer)}</p>
+          <span class="tag">${escapeHtml(item.focusArea)}</span>
+        </li>
+      `).join('')}</ul>`;
     }
 
     async function runAgentDemo(goal) {
@@ -673,14 +704,15 @@
       state.jobs = [];
       state.analyses = [];
       state.resumeFileName = '';
+      state.resumeFile = null;
       document.getElementById('resumeFile').value = '';
-      document.getElementById('resumeFileStatus').textContent = 'Required. For this local prototype, plain text/markdown files work best. Resume text below is optional.';
+      document.getElementById('resumeFileStatus').textContent = 'Required. PDF is supported for the new milestone. Text-like files can also be read locally.';
       renderJobList();
       document.getElementById('dashboard').style.display = 'none';
       document.getElementById('jobResults').className = 'empty';
       document.getElementById('jobResults').textContent = 'Run an analysis to see ranked JD cards.';
       document.getElementById('jobDetail').className = 'empty';
-      document.getElementById('jobDetail').textContent = 'Run an analysis to see resume advice for every JD.';
+      document.getElementById('jobDetail').textContent = 'Run an analysis to see role feedback for every JD.';
       setStatus('Cleared local UI state.');
     }
 
@@ -730,7 +762,7 @@
         state.llmEnabled = Boolean(config.llmEnabled);
         state.llmProvider = config.llmProvider;
         const status = state.llmEnabled
-          ? `LLM extraction enabled (${config.llmProvider}). JD URL can be submitted without manual title/text.`
+          ? `LLM extraction enabled (${config.llmProvider}${config.apiFeedbackModel ? ` / ${config.apiFeedbackModel}` : ''}). ${config.apiFeedbackConfigured ? 'Rewritten PDFs, gaps, and interview Q&A are enabled.' : 'Add the provider API key to enable rewritten PDFs, gaps, and interview Q&A.'}`
           : 'LLM extraction is not enabled. JD URL alone is not enough; paste JD title and JD text manually.';
         document.getElementById('llmStatus').textContent = status;
         document.getElementById('llmStatus').className = state.llmEnabled ? 'hint' : 'hint warning';
@@ -757,6 +789,24 @@
 
     function readInput(id) {
       return document.getElementById(id).value.trim();
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || '');
+          resolve(result.includes(',') ? result.split(',').pop() : result);
+        };
+        reader.onerror = () => reject(reader.error || new Error('Could not read file.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function inferFileType(fileName) {
+      if (/\.pdf$/i.test(fileName)) return 'application/pdf';
+      if (/\.(txt|md|csv|json)$/i.test(fileName)) return 'text/plain';
+      return 'application/octet-stream';
     }
 
     function setStatus(message, type = 'info') {

@@ -49,6 +49,7 @@ docs/milestone-3-tool-calling-recap.md
 docs/milestone-4-plan.md
 docs/milestone-3-4-agent-recap.md
 docs/milestone-5-agent-hardening.md
+docs/milestone-6-pdf-resume-rewrite.md
 docs/ui-improvement-prd.md
 ```
 
@@ -103,6 +104,22 @@ The main UI now follows `docs/ui-improvement-prd.md`: users must upload a resume
 
 The local UI analysis endpoint uses deterministic keyword/rubric logic so it works without a user-provided API key. A production deployment should keep model calls server-side and use LLMs for structured profile/JD extraction and high-quality resume rewriting, while retaining deterministic ranking validation and safety checks.
 
+Milestone 6 starts the API-backed resume rewrite path: the local web UI can send a PDF resume to the local server, extract resume text, analyze JD links or pasted JD text with Zhipu or OpenAI when configured, and generate a JD-targeted rewritten PDF draft under `exports/resume-rewrites/`. The rewrite prompt explicitly forbids inventing facts; unsupported JD requirements are returned as gaps instead of being added to the resume.
+
+Run with Zhipu:
+
+```bash
+copy .env.example .env.local
+```
+
+Fill in `ZHIPU_API_KEY`, then set:
+
+```text
+LLM_PROVIDER=zhipu
+ZHIPU_MODEL=glm-4.5-air
+ZHIPU_ENDPOINT=https://open.bigmodel.cn/api/paas/v4/chat/completions
+```
+
 Run with OpenAI:
 
 ```bash
@@ -113,7 +130,7 @@ Fill in `OPENAI_API_KEY`, then set:
 
 ```text
 LLM_PROVIDER=openai
-OPENAI_MODEL=gpt-4o-mini
+OPENAI_MODEL=gpt-5.5
 ```
 
 Then run:
