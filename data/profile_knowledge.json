@@ -169,26 +169,26 @@
   },
   {
     "id": "profile-enterprise-ai-target",
-    "title": "Target role criteria: enterprise AI and workflow products",
-    "category": "role_criteria",
-    "content": "Target roles are Beijing-based AI application layer product roles involving AI workflow, AI Agent, Data Agent, BI, AIGC, enterprise AI, productivity AI, or data intelligence.",
-    "keywords": ["Beijing", "AI workflow", "AI Agent", "Data Agent", "BI", "AIGC", "enterprise AI", "productivity AI", "data intelligence", "AI application"],
-    "citation": "data/sample_profile.md#target-roles"
+    "title": "AI product and workflow evidence",
+    "category": "strength",
+    "content": "Candidate has evidence around AI workflow, AI Agent, Data Agent, BI, AIGC, enterprise AI, productivity AI, and data intelligence through product exploration and the AI Job Search Copilot project.",
+    "keywords": ["AI workflow", "AI Agent", "Data Agent", "BI", "AIGC", "enterprise AI", "productivity AI", "data intelligence", "AI application", "product exploration"],
+    "citation": "data/sample_profile.md#public-safe-evidence-notes"
   },
   {
     "id": "profile-compensation-location-target",
-    "title": "Beijing-only and compensation target criteria",
-    "category": "role_criteria",
-    "content": "Candidate targets Beijing-only roles with annual compensation roughly between 600k and 1.5M RMB.",
-    "keywords": ["Beijing", "location", "compensation", "salary", "600k", "1.5M", "RMB", "annual package"],
-    "citation": "data/sample_profile.md#target-roles"
+    "title": "Resume rewrite integrity rule",
+    "category": "strength",
+    "content": "Resume tailoring must only reorder, compress, clarify, and re-narrate facts already present in the resume or supplied profile context. Missing JD requirements should become gaps or interview preparation, not fabricated resume claims.",
+    "keywords": ["resume rewrite", "integrity", "no fabrication", "grounded facts", "evidence", "gap", "interview preparation", "truthful tailoring"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
   },
   {
     "id": "profile-honest-ai-positioning",
-    "title": "Honest positioning for AI application product roles",
-    "category": "role_criteria",
-    "content": "Candidate is better positioned for AI application layer, enterprise workflow, productization, and business-process automation than for foundation-model training or pure algorithm research.",
-    "keywords": ["AI application layer", "enterprise workflow", "productization", "business process automation", "not foundation model training", "not pure algorithm research"],
+    "title": "Role-specific evidence selection",
+    "category": "strength",
+    "content": "For each target JD, select the candidate evidence that best explains why the resume should emphasize certain experiences first. Prioritize proof of product execution, engineering fluency, data workflow, AI tooling, stakeholder collaboration, and measurable delivery when the JD asks for those signals.",
+    "keywords": ["role-specific evidence", "resume tailoring", "product execution", "engineering fluency", "data workflow", "AI tooling", "stakeholder collaboration", "delivery", "JD signals"],
     "citation": "data/sample_profile.md#public-safe-evidence-notes"
   },
   {

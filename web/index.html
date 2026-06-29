@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Job Search Copilot</title>
+  <title>Target JD Resume Tailor</title>
   <style>
     :root {
-      --bg: #f7f5f0;
-      --panel: #ffffff;
-      --ink: #171717;
-      --muted: #6b665d;
-      --line: #ded8cd;
-      --soft: #f0ebe2;
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --surface-2: #eef3f8;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d8dee8;
       --accent: #2563eb;
-      --accent-ink: #ffffff;
-      --green: #0f8a5f;
+      --accent-soft: #e8f0ff;
+      --green: #087443;
       --amber: #a16207;
       --red: #b42318;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -28,23 +28,22 @@
     }
     header {
       border-bottom: 1px solid var(--line);
-      padding: 28px clamp(18px, 5vw, 64px);
+      padding: 22px clamp(16px, 4vw, 48px);
     }
     main {
       display: grid;
-      gap: 22px;
+      gap: 18px;
       margin: 0 auto;
-      max-width: 1180px;
-      padding: 24px clamp(18px, 5vw, 64px) 48px;
+      max-width: 1240px;
+      padding: 20px clamp(16px, 4vw, 48px) 44px;
     }
     h1 {
-      font-size: clamp(34px, 7vw, 78px);
-      letter-spacing: -0.06em;
-      line-height: 0.95;
-      margin: 0 0 14px;
-      max-width: 960px;
+      font-size: clamp(30px, 5vw, 56px);
+      letter-spacing: 0;
+      line-height: 1;
+      margin: 8px 0 0;
     }
-    h2, h3 { letter-spacing: -0.03em; margin: 0; }
+    h2, h3 { letter-spacing: 0; margin: 0; }
     p { color: var(--muted); margin: 8px 0 0; }
     label {
       color: var(--muted);
@@ -52,178 +51,122 @@
       font-size: 13px;
       font-weight: 700;
       margin: 14px 0 6px;
-      text-transform: uppercase;
-    }
-    .required { color: var(--red); }
-    .optional {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: none;
     }
     input, textarea {
-      background: #fffdfa;
+      background: #fff;
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 8px;
       color: var(--ink);
       font: inherit;
-      padding: 12px 14px;
+      padding: 11px 12px;
       width: 100%;
     }
-    textarea { min-height: 120px; resize: vertical; }
+    textarea { min-height: 132px; resize: vertical; }
     button {
       background: var(--ink);
       border: 1px solid var(--ink);
-      border-radius: 999px;
-      color: white;
+      border-radius: 8px;
+      color: #fff;
       cursor: pointer;
       font: inherit;
-      font-weight: 700;
-      padding: 10px 16px;
+      font-weight: 800;
+      min-height: 42px;
+      padding: 10px 14px;
     }
     button.secondary {
-      background: transparent;
+      background: #fff;
       border-color: var(--line);
       color: var(--ink);
     }
-    button.subtle {
-      background: var(--soft);
-      border-color: var(--soft);
-      color: var(--ink);
+    button:disabled { cursor: not-allowed; opacity: 0.55; }
+    .tag {
+      background: var(--accent-soft);
+      border-radius: 999px;
+      color: var(--accent);
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 5px 10px;
     }
-    button:disabled { cursor: not-allowed; opacity: 0.5; }
-    .hero-subtitle {
-      color: var(--muted);
-      font-size: 18px;
-      max-width: 780px;
-    }
-    .grid {
+    .workspace {
+      align-items: start;
       display: grid;
       gap: 18px;
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(320px, 440px) minmax(0, 1fr);
     }
     .panel {
-      background: rgba(255, 255, 255, 0.78);
+      background: var(--surface);
       border: 1px solid var(--line);
-      border-radius: 28px;
-      padding: 22px;
+      border-radius: 8px;
+      padding: 18px;
     }
+    .panel + .panel { margin-top: 14px; }
     .panel-header {
       align-items: flex-start;
       display: flex;
-      gap: 14px;
+      gap: 12px;
       justify-content: space-between;
     }
     .step {
       align-items: center;
       background: var(--ink);
       border-radius: 999px;
-      color: white;
-      display: inline-flex;
-      font-size: 13px;
-      font-weight: 800;
-      height: 28px;
-      justify-content: center;
-      min-width: 28px;
-      padding: 0 10px;
-    }
-    .hint {
-      background: var(--soft);
-      border-radius: 16px;
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 12px;
-      padding: 10px 12px;
-    }
-    .hint.warning {
-      background: #fff7ed;
-      color: #9a3412;
-    }
-    .hint.error {
-      background: #fef2f2;
-      color: var(--red);
-      font-weight: 700;
-    }
-    .hint.success {
-      background: #ecfdf5;
-      color: var(--green);
-      font-weight: 700;
-    }
-    .muted { color: var(--muted); }
-    .row { display: flex; flex-wrap: wrap; gap: 10px; }
-    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
-    .jd-list { display: grid; gap: 8px; margin-top: 12px; }
-    .jd-item {
-      align-items: center;
-      background: var(--soft);
-      border-radius: 16px;
-      display: flex;
-      gap: 10px;
-      justify-content: space-between;
-      padding: 10px 12px;
-    }
-    .count-pill, .tag {
-      background: var(--soft);
-      border-radius: 999px;
-      color: var(--muted);
+      color: #fff;
       display: inline-flex;
       font-size: 12px;
-      font-weight: 700;
-      padding: 5px 10px;
+      font-weight: 900;
+      height: 26px;
+      justify-content: center;
+      min-width: 26px;
+      padding: 0 9px;
     }
-    .summary-grid {
+    .row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .hint {
+      background: var(--surface-2);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 10px;
+      padding: 10px 12px;
+    }
+    .hint.warning { background: #fff7ed; color: #9a3412; }
+    .hint.error { background: #fef2f2; color: var(--red); font-weight: 700; }
+    .hint.success { background: #ecfdf5; color: var(--green); font-weight: 700; }
+    .muted { color: var(--muted); }
+    .result-grid {
       display: grid;
       gap: 12px;
-      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 14px;
     }
     .metric {
-      background: var(--panel);
+      background: var(--surface-2);
       border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 16px;
+      border-radius: 8px;
+      min-height: 96px;
+      padding: 14px;
+    }
+    .metric span {
+      color: var(--muted);
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
     }
     .metric strong {
       display: block;
-      font-size: 30px;
-      letter-spacing: -0.05em;
-    }
-    .results-layout {
-      display: grid;
-      gap: 18px;
-      grid-template-columns: 1fr;
-    }
-    .job-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      cursor: pointer;
-      margin-top: 10px;
-      padding: 16px;
-      transition: border-color 0.15s ease, transform 0.15s ease;
-    }
-    .job-card:hover, .job-card.active {
-      border-color: var(--ink);
-      transform: translateY(-1px);
-    }
-    .advice-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      margin-top: 14px;
-      padding: 18px;
-    }
-    .advice-card.active {
-      border-color: var(--ink);
-      box-shadow: inset 0 0 0 1px var(--ink);
-    }
-    .score {
-      align-items: center;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      display: inline-flex;
-      font-weight: 900;
-      gap: 6px;
-      padding: 7px 12px;
+      font-size: 32px;
+      letter-spacing: 0;
+      margin-top: 6px;
     }
     .score.strong { color: var(--green); }
     .score.medium { color: var(--amber); }
@@ -233,167 +176,275 @@
       margin-top: 18px;
       padding-top: 18px;
     }
+    .change-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .change-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .change-item h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    .change-item dl {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+    }
+    .change-item dt {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .change-item dd {
+      margin: 2px 0 0;
+    }
     ul { margin: 10px 0 0; padding-left: 20px; }
     li { margin: 7px 0; }
+    a.button-link {
+      align-items: center;
+      background: var(--accent);
+      border-radius: 8px;
+      color: #fff;
+      display: inline-flex;
+      font-weight: 800;
+      min-height: 42px;
+      padding: 10px 14px;
+      text-decoration: none;
+    }
+    a.button-link.secondary {
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--ink);
+    }
     .empty {
       align-items: center;
       border: 1px dashed var(--line);
-      border-radius: 24px;
+      border-radius: 8px;
       color: var(--muted);
       display: grid;
-      min-height: 180px;
-      padding: 26px;
+      min-height: 300px;
+      padding: 28px;
       place-items: center;
       text-align: center;
     }
-    details {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 16px 18px;
+    .question {
+      border-bottom: 1px solid var(--line);
+      padding: 12px 0;
     }
-    summary { cursor: pointer; font-weight: 800; }
-    pre {
-      background: #111;
-      border-radius: 16px;
-      color: #f8f8f2;
-      max-height: 340px;
-      overflow: auto;
-      padding: 14px;
-      white-space: pre-wrap;
+    .question:last-child { border-bottom: 0; }
+    .loading-shell {
+      display: grid;
+      gap: 16px;
+    }
+    .loading-top {
+      align-items: center;
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+    }
+    .timer-pill {
+      background: var(--ink);
+      border-radius: 999px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 900;
+      padding: 7px 11px;
+      white-space: nowrap;
+    }
+    .skeleton {
+      animation: pulse 1.2s ease-in-out infinite;
+      background: linear-gradient(90deg, #edf1f6 0%, #f8fafc 50%, #edf1f6 100%);
+      background-size: 220% 100%;
+      border-radius: 8px;
+      min-height: 16px;
+    }
+    .skeleton.metric { min-height: 96px; }
+    .skeleton-line { height: 14px; margin-top: 10px; }
+    .skeleton-line.short { width: 56%; }
+    .progress-list {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .progress-item {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 4px;
+      grid-template-columns: 22px 1fr;
+      padding: 12px;
+    }
+    .progress-item:last-child { border-bottom: 0; }
+    .progress-dot {
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 900;
+      height: 20px;
+      justify-content: center;
+      margin-top: 1px;
+      width: 20px;
+    }
+    .progress-item.done .progress-dot {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+    .progress-item.active .progress-dot {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .progress-item.pending { color: var(--muted); }
+    .progress-item strong { font-size: 14px; }
+    .progress-item p { font-size: 13px; margin: 2px 0 0; }
+
+    @keyframes pulse {
+      0% { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
     }
 
     @media (max-width: 980px) {
-      .summary-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+      .workspace { grid-template-columns: 1fr; }
+      .result-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .row { grid-template-columns: 1fr; }
+      .actions button, .actions a { width: 100%; justify-content: center; }
     }
   </style>
 </head>
 <body>
   <header>
-    <span class="tag">PDF Resume + JD Links + GPT Feedback</span>
-    <h1>Tailor your resume to each target role.</h1>
-    <div class="hero-subtitle">
-      Upload your PDF resume, submit JD links or JD text, and get success probability, targeted resume edits, a rewritten PDF draft, gaps, and interview prep for each role.
-    </div>
+    <span class="tag">Marshallzzz Resume Tool</span>
+    <h1>Target JD Resume Tailor</h1>
   </header>
 
   <main>
-    <section class="grid">
+    <section class="workspace">
+      <div>
+        <div class="panel">
+          <div class="panel-header">
+            <h2><span class="step">1</span> Resume</h2>
+          </div>
+
+          <label for="resumeFile">Resume file</label>
+          <input id="resumeFile" type="file" accept=".pdf,.txt,.md,.csv,.json" />
+          <div id="resumeFileStatus" class="hint">PDF preferred. Text-like files are also supported.</div>
+
+          <label for="resumeText">Extra context</label>
+          <textarea id="resumeText" placeholder="Optional: paste portfolio notes, project details, or facts not obvious in the PDF."></textarea>
+
+          <div class="row">
+            <div>
+              <label for="websiteUrl">Website</label>
+              <input id="websiteUrl" placeholder="https://marshallzzz.com" />
+            </div>
+            <div>
+              <label for="githubUrl">GitHub</label>
+              <input id="githubUrl" placeholder="https://github.com/..." />
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2><span class="step">2</span> Target JD</h2>
+          </div>
+          <div id="llmStatus" class="hint warning">Checking model status...</div>
+
+          <label for="jobUrl">JD URL</label>
+          <input id="jobUrl" placeholder="https://..." />
+
+          <div class="row">
+            <div>
+              <label for="jobTitle">Title</label>
+              <input id="jobTitle" placeholder="AI Product Manager" />
+            </div>
+            <div>
+              <label for="company">Company</label>
+              <input id="company" placeholder="Company" />
+            </div>
+          </div>
+
+          <label for="location">Location</label>
+          <input id="location" placeholder="Remote / Shanghai / Beijing / ..." />
+
+          <label for="jobDescription">JD text</label>
+          <textarea id="jobDescription" placeholder="Paste responsibilities, requirements, qualifications, and role context."></textarea>
+
+          <div class="actions">
+            <button id="analyzeButton" onclick="analyzeTarget()">Analyze this JD</button>
+            <button class="secondary" onclick="loadSampleData()">Load sample</button>
+            <button class="secondary" onclick="clearAll()">Clear</button>
+          </div>
+          <div id="status" class="hint">Ready.</div>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-header">
           <div>
-            <h2><span class="step">1</span> Profile Setup</h2>
-            <p>Only Resume File is required. Resume text, personal website, and GitHub are optional.</p>
+            <h2><span class="step">3</span> Resume Edit Review</h2>
+            <p id="resultSubtitle">Submit one JD to generate a reviewable resume rewrite.</p>
           </div>
         </div>
-
-        <label for="resumeFile">Resume file <span class="required">*</span></label>
-        <input id="resumeFile" type="file" accept=".pdf,.txt,.md,.csv,.json" />
-        <div id="resumeFileStatus" class="hint">Required. PDF is supported for the new milestone. Text-like files can also be read locally.</div>
-
-        <label for="resumeText">Resume text <span class="optional">optional supplement</span></label>
-        <textarea id="resumeText" placeholder="Optional: paste extra resume, portfolio summary, or project bullets here..."></textarea>
-
-        <label for="websiteUrl">Personal website URL <span class="optional">optional</span></label>
-        <input id="websiteUrl" placeholder="https://your-site.com" />
-
-        <label for="githubUrl">GitHub URL <span class="optional">optional</span></label>
-        <input id="githubUrl" placeholder="https://github.com/username or repo" />
-      </div>
-
-      <div class="panel">
-        <div class="panel-header">
-          <div>
-            <h2><span class="step">2</span> JD Submission</h2>
-            <p>Add 1-10 job descriptions. With an API provider enabled, JD URL can stand alone; otherwise paste title and JD text.</p>
-          </div>
-          <span id="jdCount" class="count-pill">0 / 10</span>
-        </div>
-        <div id="llmStatus" class="hint warning">Checking LLM status...</div>
-
-        <label for="jobTitle">JD title <span class="optional">required unless URL-only + LLM enabled</span></label>
-        <input id="jobTitle" placeholder="AI Product Manager" />
-
-        <div class="row">
-          <div style="flex: 1 1 180px;">
-            <label for="company">Company</label>
-            <input id="company" placeholder="Company" />
-          </div>
-          <div style="flex: 1 1 180px;">
-            <label for="location">Location</label>
-            <input id="location" placeholder="Beijing / Remote" />
-          </div>
-        </div>
-
-        <label for="jobUrl">JD URL <span class="optional">can stand alone only with LLM enabled</span></label>
-        <input id="jobUrl" placeholder="https://..." />
-
-        <label for="jobDescription">JD text <span class="optional">required unless URL-only + LLM enabled</span></label>
-        <textarea id="jobDescription" placeholder="Paste responsibilities, requirements, skills, and product context..."></textarea>
-
-        <div class="actions">
-          <button class="secondary" onclick="addJob()">Add JD</button>
-          <button class="subtle" onclick="loadSampleData()">Load sample profile + JDs</button>
-          <button class="secondary" onclick="clearAll()">Clear</button>
-        </div>
-        <div id="jdList" class="jd-list"></div>
-        <div class="actions">
-          <button id="analyzeButton" onclick="analyzeBatch()">Analyze and rank JDs</button>
-          <span id="status" class="hint">Ready.</span>
-        </div>
+        <div id="resultPanel" class="empty">No analysis yet.</div>
       </div>
     </section>
-
-    <section id="dashboard" class="panel" style="display:none;">
-      <div class="panel-header">
-        <div>
-          <h2><span class="step">3</span> Ranking Dashboard</h2>
-          <p id="batchRecommendation"></p>
-        </div>
-      </div>
-      <div class="summary-grid" style="margin-top: 16px;">
-        <div class="metric"><span class="muted">Total JDs</span><strong id="metricTotal">0</strong></div>
-        <div class="metric"><span class="muted">Average success</span><strong id="metricAvg">0%</strong></div>
-        <div class="metric"><span class="muted">Strong</span><strong id="metricStrong">0</strong></div>
-        <div class="metric"><span class="muted">Top JD</span><strong id="metricTop" style="font-size:20px;">-</strong></div>
-      </div>
-    </section>
-
-    <section class="results-layout">
-      <div class="panel">
-        <h2><span class="step">4</span> Job Shortlist</h2>
-        <p>Sorted by success probability, highest first.</p>
-        <div id="jobResults" class="empty">Run an analysis to see ranked JD cards.</div>
-      </div>
-
-      <div class="panel">
-        <h2><span class="step">5</span> Role Feedback + Rewritten Resume</h2>
-        <p>Each submitted JD gets ranking reasons, rewrite guidance, a PDF draft when Zhipu/OpenAI is configured, gaps, and interview prep.</p>
-        <div id="jobDetail" class="empty">Run an analysis to see role feedback for every JD.</div>
-      </div>
-    </section>
-
-    <details>
-      <summary>Secondary: Agent trace and approval demo</summary>
-      <p>This is intentionally secondary so the main product UI stays simple.</p>
-      <div class="actions">
-        <button class="secondary" onclick="runAgentDemo('apply')">Run apply demo</button>
-        <button class="secondary" onclick="refreshTrace()">Refresh trace</button>
-      </div>
-      <pre id="traceOutput">Trace not loaded.</pre>
-    </details>
   </main>
 
   <script>
     const state = {
-      jobs: [],
-      analyses: [],
-      selectedIndex: 0,
+      analysis: null,
       llmEnabled: false,
       llmProvider: null,
       resumeFileName: '',
-      resumeFile: null
+      resumeFile: null,
+      loadingTimer: null,
+      loadingStartedAt: 0
     };
+
+    const loadingSteps = [
+      {
+        at: 0,
+        title: 'Reading resume',
+        detail: 'Extracting resume text and treating submitted facts as the source of truth.'
+      },
+      {
+        at: 4,
+        title: 'Reading target JD',
+        detail: 'Parsing the role requirements, responsibilities, and screening keywords.'
+      },
+      {
+        at: 9,
+        title: 'Matching evidence',
+        detail: 'Checking which resume facts can support this JD without adding unsupported claims.'
+      },
+      {
+        at: 16,
+        title: 'Drafting change log',
+        detail: 'Preparing what changed, why it changed, and which evidence supports each edit.'
+      },
+      {
+        at: 26,
+        title: 'Writing PDF draft',
+        detail: 'Reordering and re-narrating existing resume content into a targeted PDF.'
+      },
+      {
+        at: 38,
+        title: 'Final integrity check',
+        detail: 'Keeping gaps separate from resume claims and preparing interview prompts.'
+      }
+    ];
 
     document.getElementById('resumeFile').addEventListener('change', async (event) => {
       const file = event.target.files?.[0];
@@ -404,48 +455,19 @@
         type: file.type || inferFileType(file.name),
         dataBase64: await readFileAsBase64(file)
       };
-      document.getElementById('resumeFileStatus').textContent = `Resume file selected: ${file.name}`;
+      document.getElementById('resumeFileStatus').textContent = `Selected: ${file.name}`;
 
       if (file.name.match(/\.pdf$/i) || file.type === 'application/pdf') {
-        setStatus(`Loaded ${file.name}. The server will extract PDF text during analysis.`, 'success');
+        setStatus(`Loaded ${file.name}.`);
         return;
       }
 
       try {
         document.getElementById('resumeText').value = await file.text();
-        setStatus(`Loaded resume text from ${file.name}.`, 'success');
-      } catch (_error) {
-        setStatus(`Resume file selected: ${file.name}. Could not auto-read text, but the file requirement is satisfied.`, 'warning');
-      }
+      } catch (_error) {}
     });
 
-    function addJob() {
-      if (state.jobs.length >= 10) {
-        setStatus('You can submit at most 10 JDs in one batch.', 'error');
-        return;
-      }
-
-      const job = readDraftJob();
-      const validation = validateDraftJob(job);
-
-      if (!validation.ok) {
-        setStatus(validation.message, 'error');
-        return;
-      }
-
-      state.jobs.push(job);
-      clearJobForm();
-      renderJobList();
-      setStatus(`Added JD ${state.jobs.length} / 10.`, 'success');
-    }
-
-    function removeJob(index) {
-      state.jobs.splice(index, 1);
-      renderJobList();
-      setStatus(`Removed JD. Current batch: ${state.jobs.length} / 10.`);
-    }
-
-    async function analyzeBatch() {
+    async function analyzeTarget() {
       const profile = {
         resumeFileName: state.resumeFileName,
         resumeFile: state.resumeFile,
@@ -453,276 +475,247 @@
         websiteUrl: readInput('websiteUrl'),
         githubUrl: readInput('githubUrl')
       };
-      const draftJob = readDraftJob();
-      const hasDraftJob = draftJob.title || draftJob.description || draftJob.company || draftJob.location || draftJob.url;
+      const job = readJob();
+      const validation = validateJob(job);
 
       if (!profile.resumeFileName) {
-        setStatus('Resume File is required. Resume text, website, and GitHub are optional.', 'error');
+        setStatus('Please upload a resume file first.', 'error');
         return;
       }
-
-      if (hasDraftJob) {
-        const validation = validateDraftJob(draftJob);
-        if (!validation.ok) {
-          setStatus(validation.message, 'error');
-          return;
-        }
-        if (state.jobs.length >= 10) {
-          setStatus('You already have 10 JDs. Remove one before analyzing the current draft.', 'error');
-          return;
-        }
-        state.jobs.push(draftJob);
-        clearJobForm();
-        renderJobList();
-      }
-
-      if (state.jobs.length < 1 || state.jobs.length > 10) {
-        setStatus('Add between 1 and 10 JDs before analyzing.', 'error');
+      if (!validation.ok) {
+        setStatus(validation.message, 'error');
         return;
       }
 
       setBusy(true);
-      setStatus('Analyzing profile-to-JD fit...');
+      startAnalysisFeedback(job);
       try {
-        const result = await requestJson('/api/analyze-jds', {
+        const result = await requestJson('/api/analyze-target-jd', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ profile, jobs: state.jobs })
+          body: JSON.stringify({ profile, job })
         });
-        state.analyses = result.analyses || [];
-        state.selectedIndex = 0;
-        renderDashboard(result.summary);
-        renderResults();
-        renderDetail(0);
-        setStatus('Analysis complete. Ranked by success probability.', 'success');
+        stopAnalysisFeedback();
+        state.analysis = result.analysis;
+        renderResult(result.analysis, result.summary);
+        setStatus('Done. Review the changes before using the PDF.', 'success');
       } catch (error) {
+        stopAnalysisFeedback();
+        renderErrorState(error.message);
         setStatus(`Analysis failed: ${error.message}`, 'error');
       } finally {
         setBusy(false);
       }
     }
 
-    function renderJobList() {
-      document.getElementById('jdCount').textContent = `${state.jobs.length} / 10`;
-      const list = document.getElementById('jdList');
-      if (state.jobs.length === 0) {
-        list.innerHTML = '';
-        return;
-      }
+    function startAnalysisFeedback(job) {
+      stopAnalysisFeedback();
+      state.loadingStartedAt = Date.now();
+      document.getElementById('resultSubtitle').textContent = job.title
+        ? `Working on ${job.title}${job.company ? ` at ${job.company}` : ''}.`
+        : 'Working on the target JD.';
+      renderLoading();
+      updateLoadingProgress();
+      state.loadingTimer = window.setInterval(updateLoadingProgress, 1000);
+    }
 
-      list.innerHTML = state.jobs.map((job, index) => `
-        <div class="jd-item">
-          <div>
-            <strong>${escapeHtml(job.title)}</strong>
-            <div class="muted">${escapeHtml(job.company || 'Unknown company')} · ${escapeHtml(job.location || 'Unknown location')}</div>
+    function stopAnalysisFeedback() {
+      if (state.loadingTimer) {
+        window.clearInterval(state.loadingTimer);
+        state.loadingTimer = null;
+      }
+      state.loadingStartedAt = 0;
+    }
+
+    function renderLoading() {
+      const panel = document.getElementById('resultPanel');
+      panel.className = '';
+      panel.innerHTML = `
+        <div class="loading-shell">
+          <div class="loading-top">
+            <div>
+              <h2>Analyzing resume fit</h2>
+              <p id="loadingHeadline">Preparing analysis...</p>
+            </div>
+            <span id="elapsedTimer" class="timer-pill">00:00</span>
           </div>
-          <button class="secondary" onclick="removeJob(${index})">Remove</button>
+
+          <div class="result-grid">
+            <div class="skeleton metric"></div>
+            <div class="skeleton metric"></div>
+            <div class="skeleton metric"></div>
+          </div>
+
+          <div class="detail-section">
+            <h2>What changed and why</h2>
+            <div class="skeleton skeleton-line"></div>
+            <div class="skeleton skeleton-line"></div>
+            <div class="skeleton skeleton-line short"></div>
+          </div>
+
+          <div class="detail-section">
+            <h2>Processing steps</h2>
+            <div id="progressList" class="progress-list"></div>
+          </div>
         </div>
-      `).join('');
-    }
-
-    function renderDashboard(summary) {
-      document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('batchRecommendation').textContent = summary.recommendation || '';
-      document.getElementById('metricTotal').textContent = summary.totalJobs || 0;
-      document.getElementById('metricAvg').textContent = `${summary.averageSuccessProbability || 0}%`;
-      document.getElementById('metricStrong').textContent = summary.strongCount || 0;
-      document.getElementById('metricTop').textContent = summary.topJob || '-';
-    }
-
-    function renderResults() {
-      const container = document.getElementById('jobResults');
-      if (state.analyses.length === 0) {
-        container.className = 'empty';
-        container.textContent = 'No results yet.';
-        return;
-      }
-
-      container.className = '';
-      container.innerHTML = state.analyses.map((job, index) => `
-        <article class="job-card ${index === state.selectedIndex ? 'active' : ''}" onclick="renderDetail(${index})">
-          <div class="panel-header">
-            <div>
-              <span class="tag">#${job.rank} · ${escapeHtml(job.level)}</span>
-              <h3>${escapeHtml(job.title)}</h3>
-              <p>${escapeHtml(job.company)} · ${escapeHtml(job.location)}</p>
-            </div>
-            <span class="score ${job.level.toLowerCase()}">${job.successProbability}%</span>
-          </div>
-          <ul>
-            ${(job.rankingReasons || []).slice(0, 2).map((reason) => `<li>${escapeHtml(reason)}</li>`).join('')}
-          </ul>
-        </article>
-      `).join('');
-    }
-
-    function renderDetail(index) {
-      state.selectedIndex = index;
-      renderResults();
-
-      const detail = document.getElementById('jobDetail');
-      if (state.analyses.length === 0) {
-        detail.className = 'empty';
-        detail.textContent = 'Run an analysis to see resume advice for every JD.';
-        return;
-      }
-
-      detail.className = '';
-      detail.innerHTML = state.analyses.map((job, adviceIndex) => renderAdviceCard(job, adviceIndex)).join('');
-    }
-
-    function renderAdviceCard(job, adviceIndex) {
-      return `
-        <article class="advice-card ${adviceIndex === state.selectedIndex ? 'active' : ''}" id="advice-${job.rank}">
-          <div class="panel-header">
-            <div>
-              <span class="tag">Rank #${job.rank} · ${escapeHtml(job.level)}</span>
-              <h2>${escapeHtml(job.title)}</h2>
-              <p>${escapeHtml(job.company)} · ${escapeHtml(job.location)}</p>
-            </div>
-            <span class="score ${job.level.toLowerCase()}">${job.successProbability}%</span>
-          </div>
-
-          <div class="detail-section">
-            <h3>Ranking reasons</h3>
-            ${renderList(job.rankingReasons)}
-          </div>
-
-          <div class="detail-section">
-            <h3>Resume improvement suggestions</h3>
-            ${renderList(job.resumeImprovements)}
-          </div>
-
-          <div class="detail-section">
-            <h3>Rewritten resume PDF</h3>
-            ${job.rewrittenResumePdfUrl
-              ? `<p><a class="tag" href="${escapeHtml(job.rewrittenResumePdfUrl)}" target="_blank" rel="noopener">Open rewritten PDF draft</a></p>`
-              : `<p class="muted">${escapeHtml((job.contentIntegrityNotes || [])[0] || 'Configure Zhipu or OpenAI to generate a rewritten PDF draft.')}</p>`}
-            ${(job.resumeRewritePlan || []).length ? `<h3 style="margin-top:14px;">Rewrite plan</h3>${renderList(job.resumeRewritePlan)}` : ''}
-          </div>
-
-          <div class="detail-section">
-            <h3>Matched skills and gaps</h3>
-            <div class="row">
-              ${(job.matchedSkills || []).map((skill) => `<span class="tag">${escapeHtml(skill)}</span>`).join('') || '<span class="muted">No direct skill matches detected.</span>'}
-            </div>
-            <p><strong>Skill gaps:</strong> ${(job.missingSkills || []).map(escapeHtml).join(', ') || 'No major skill gaps detected.'}</p>
-            ${(job.gaps || []).length ? `<h3 style="margin-top:14px;">Current gaps for this role</h3>${renderList(job.gaps)}` : ''}
-          </div>
-
-          <div class="detail-section">
-            <h3>Risks</h3>
-            ${renderList(job.risks)}
-          </div>
-
-          <div class="detail-section">
-            <h3>Likely interview questions and answers</h3>
-            ${(job.interviewQuestions || []).length ? renderInterviewQuestions(job.interviewQuestions) : renderList(job.interviewTalkingPoints)}
-          </div>
-
-          <div class="detail-section">
-            <h3>No-fabrication check</h3>
-            ${renderList(job.contentIntegrityNotes)}
-          </div>
-        </article>
       `;
     }
 
+    function updateLoadingProgress() {
+      if (!state.loadingStartedAt) return;
+      const elapsedSeconds = Math.max(0, Math.floor((Date.now() - state.loadingStartedAt) / 1000));
+      const activeIndex = loadingSteps.reduce((latest, step, index) => elapsedSeconds >= step.at ? index : latest, 0);
+      const activeStep = loadingSteps[activeIndex];
+      const timer = document.getElementById('elapsedTimer');
+      const headline = document.getElementById('loadingHeadline');
+      const list = document.getElementById('progressList');
+
+      if (timer) timer.textContent = formatElapsed(elapsedSeconds);
+      if (headline) headline.textContent = activeStep.detail;
+      setStatus(`${activeStep.title}... ${formatElapsed(elapsedSeconds)} elapsed.`);
+
+      if (list) {
+        list.innerHTML = loadingSteps.map((step, index) => {
+          const stateClass = index < activeIndex ? 'done' : index === activeIndex ? 'active' : 'pending';
+          const marker = index < activeIndex ? 'ok' : index === activeIndex ? '>' : '';
+          return `
+            <div class="progress-item ${stateClass}">
+              <span class="progress-dot">${marker}</span>
+              <div>
+                <strong>${escapeHtml(step.title)}</strong>
+                <p>${escapeHtml(step.detail)}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderResult(analysis, summary = {}) {
+      const panel = document.getElementById('resultPanel');
+      if (!analysis) {
+        panel.className = 'empty';
+        panel.textContent = 'No analysis yet.';
+        return;
+      }
+
+      const levelClass = String(analysis.level || 'Low').toLowerCase();
+      document.getElementById('resultSubtitle').textContent = summary.recommendation || `${analysis.title} at ${analysis.company}`;
+      panel.className = '';
+      panel.innerHTML = `
+        <div class="result-grid">
+          <div class="metric">
+            <span>Interview chance</span>
+            <strong class="score ${levelClass}">${analysis.successProbability || 0}%</strong>
+          </div>
+          <div class="metric">
+            <span>Fit level</span>
+            <strong class="score ${levelClass}">${escapeHtml(analysis.level || 'Low')}</strong>
+          </div>
+          <div class="metric">
+            <span>Target role</span>
+            <strong style="font-size:20px;">${escapeHtml(analysis.title || 'Target JD')}</strong>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h2>What changed and why</h2>
+          ${renderChangeLog(analysis.changeLog)}
+        </div>
+
+        <div class="detail-section">
+          <h2>Rewritten resume PDF</h2>
+          ${analysis.rewrittenResumePdfUrl
+            ? `<div class="actions">
+                <a class="button-link" href="${escapeHtml(buildDownloadUrl(analysis.rewrittenResumePdfUrl))}" download="${escapeHtml(buildResumeDownloadName(analysis))}">Download revised resume</a>
+                <a class="button-link secondary" href="${escapeHtml(analysis.rewrittenResumePdfUrl)}" target="_blank" rel="noopener">Preview PDF</a>
+              </div>`
+            : `<p class="muted">${escapeHtml((analysis.contentIntegrityNotes || [])[0] || 'API-backed PDF generation is not configured.')}</p>`}
+          ${renderListSection('Rewrite plan', analysis.resumeRewritePlan)}
+        </div>
+
+        <div class="detail-section">
+          <h2>Fit evidence</h2>
+          ${renderList(analysis.rankingReasons)}
+          ${renderListSection('Resume edits to apply', analysis.resumeImprovements)}
+        </div>
+
+        <div class="detail-section">
+          <h2>Gaps</h2>
+          ${renderList(analysis.gaps || analysis.missingSkills)}
+        </div>
+
+        <div class="detail-section">
+          <h2>Interview prep</h2>
+          ${(analysis.interviewQuestions || []).length ? renderInterviewQuestions(analysis.interviewQuestions) : renderList(analysis.interviewTalkingPoints)}
+        </div>
+
+        <div class="detail-section">
+          <h2>No-fabrication check</h2>
+          ${renderList(analysis.contentIntegrityNotes)}
+        </div>
+      `;
+    }
+
+    function renderErrorState(message) {
+      const panel = document.getElementById('resultPanel');
+      document.getElementById('resultSubtitle').textContent = 'Analysis did not complete.';
+      panel.className = 'empty';
+      panel.innerHTML = `
+        <div>
+          <strong>Analysis failed</strong>
+          <p>${escapeHtml(message)}</p>
+        </div>
+      `;
+    }
+
+    function renderChangeLog(items = []) {
+      if (!items.length) {
+        return '<p class="muted">No change log returned. Check model configuration or rerun with more JD text.</p>';
+      }
+      return `<div class="change-list">${items.map((item) => `
+        <article class="change-item">
+          <h3>${escapeHtml(item.section)}</h3>
+          <dl>
+            <div><dt>Before</dt><dd>${escapeHtml(item.before)}</dd></div>
+            <div><dt>After</dt><dd>${escapeHtml(item.after)}</dd></div>
+            <div><dt>Why</dt><dd>${escapeHtml(item.reason)}</dd></div>
+            <div><dt>Evidence</dt><dd>${escapeHtml(item.sourceEvidence)}</dd></div>
+          </dl>
+        </article>
+      `).join('')}</div>`;
+    }
+
+    function renderListSection(title, items = []) {
+      if (!items || items.length === 0) return '';
+      return `<div style="margin-top:14px;"><h3>${escapeHtml(title)}</h3>${renderList(items)}</div>`;
+    }
+
     function renderList(items = []) {
+      if (!items || items.length === 0) return '<p class="muted">No items returned.</p>';
       return `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
     }
 
     function renderInterviewQuestions(items = []) {
-      return `<ul>${items.map((item) => `
-        <li>
+      return items.map((item) => `
+        <div class="question">
           <strong>${escapeHtml(item.question)}</strong>
           <p>${escapeHtml(item.answer)}</p>
           <span class="tag">${escapeHtml(item.focusArea)}</span>
-        </li>
-      `).join('')}</ul>`;
+        </div>
+      `).join('');
     }
 
-    async function runAgentDemo(goal) {
-      const output = document.getElementById('traceOutput');
-      output.textContent = `Running ${goal} agent demo...`;
-      try {
-        const result = await requestJson(`/api/run-demo?goal=${encodeURIComponent(goal)}`, { method: 'POST' });
-        output.textContent = result.stdout || 'Demo completed.';
-        await refreshTrace();
-      } catch (error) {
-        output.textContent = `Demo failed: ${error.message}`;
-      }
+    function buildDownloadUrl(url) {
+      return `${url}${url.includes('?') ? '&' : '?'}download=1`;
     }
 
-    async function refreshTrace() {
-      const output = document.getElementById('traceOutput');
-      try {
-        const trace = await requestJson('/tool-call-trace.json');
-        output.textContent = JSON.stringify(trace, null, 2);
-      } catch (error) {
-        output.textContent = 'No trace available yet.';
-      }
+    function buildResumeDownloadName(analysis) {
+      const raw = `revised-resume-${analysis.title || 'target-role'}.pdf`;
+      return raw.replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, '-').slice(0, 120);
     }
 
-    function loadSampleData() {
-      document.getElementById('resumeText').value = `AI product manager with engineering background. Built AI Job Search Copilot using LLM, RAG, function calling, MCP, TypeScript, JavaScript, React, Node, API design, SQL, prompt engineering, and agent approval workflows. Strong English communication from global company experience.`;
-      state.resumeFileName = 'sample-resume.md';
-      document.getElementById('resumeFileStatus').textContent = 'Sample resume file selected: sample-resume.md';
-      document.getElementById('websiteUrl').value = 'https://marshallzzz.com';
-      document.getElementById('githubUrl').value = 'https://github.com/yzhan146/AIJobSearchCopilot';
-      state.jobs = [
-        {
-          title: 'AI Product Manager - LLM Platform',
-          company: 'Volcano Engine',
-          location: 'Beijing',
-          url: '',
-          description: 'Own roadmap for LLM platform, RAG tooling, agent workflow, prompt engineering, API integrations, user research, and enterprise AI product strategy. English communication preferred.'
-        },
-        {
-          title: 'Growth Product Manager',
-          company: 'Consumer App',
-          location: 'Shanghai',
-          url: '',
-          description: 'Responsible for growth strategy, funnel analytics, user lifecycle, and campaign operations. Fast-paced high pressure environment.'
-        },
-        {
-          title: 'AI Application Product Lead',
-          company: 'Startup',
-          location: 'Beijing',
-          url: '',
-          description: 'Build chatbot and copilot products with LLM, agent orchestration, function calling, data analytics, customer discovery, and roadmap ownership.'
-        }
-      ];
-      renderJobList();
-      setStatus('Loaded sample profile and 3 JDs.', 'success');
-    }
-
-    function clearAll() {
-      for (const id of ['resumeText', 'websiteUrl', 'githubUrl', 'jobTitle', 'company', 'location', 'jobUrl', 'jobDescription']) {
-        document.getElementById(id).value = '';
-      }
-      state.jobs = [];
-      state.analyses = [];
-      state.resumeFileName = '';
-      state.resumeFile = null;
-      document.getElementById('resumeFile').value = '';
-      document.getElementById('resumeFileStatus').textContent = 'Required. PDF is supported for the new milestone. Text-like files can also be read locally.';
-      renderJobList();
-      document.getElementById('dashboard').style.display = 'none';
-      document.getElementById('jobResults').className = 'empty';
-      document.getElementById('jobResults').textContent = 'Run an analysis to see ranked JD cards.';
-      document.getElementById('jobDetail').className = 'empty';
-      document.getElementById('jobDetail').textContent = 'Run an analysis to see role feedback for every JD.';
-      setStatus('Cleared local UI state.');
-    }
-
-    function clearJobForm() {
-      for (const id of ['jobTitle', 'company', 'location', 'jobUrl', 'jobDescription']) {
-        document.getElementById(id).value = '';
-      }
-    }
-
-    function readDraftJob() {
+    function readJob() {
       return {
         title: readInput('jobTitle'),
         company: readInput('company'),
@@ -732,28 +725,13 @@
       };
     }
 
-    function validateDraftJob(job) {
-      const hasUrl = Boolean(job.url);
-      const hasManualContent = Boolean(job.title && job.description);
-
-      if (hasManualContent) {
-        return { ok: true };
+    function validateJob(job) {
+      if (job.title && job.description) return { ok: true };
+      if (job.url && state.llmEnabled) return { ok: true };
+      if (job.url) {
+        return { ok: false, message: 'URL-only analysis needs the model to fetch and read the JD. Paste the title and JD text, or check model config.' };
       }
-
-      if (hasUrl) {
-        if (state.llmEnabled) {
-          return { ok: true };
-        }
-        return {
-          ok: false,
-          message: 'JD URL-only analysis needs LLM-backed extraction. LLM is not enabled now, so please paste the JD title and content manually.'
-        };
-      }
-
-      return {
-        ok: false,
-        message: 'Add a JD URL, or manually fill both JD title and JD text.'
-      };
+      return { ok: false, message: 'Add a JD URL, or fill both title and JD text.' };
     }
 
     async function loadConfig() {
@@ -762,13 +740,42 @@
         state.llmEnabled = Boolean(config.llmEnabled);
         state.llmProvider = config.llmProvider;
         const status = state.llmEnabled
-          ? `LLM extraction enabled (${config.llmProvider}${config.apiFeedbackModel ? ` / ${config.apiFeedbackModel}` : ''}). ${config.apiFeedbackConfigured ? 'Rewritten PDFs, gaps, and interview Q&A are enabled.' : 'Add the provider API key to enable rewritten PDFs, gaps, and interview Q&A.'}`
-          : 'LLM extraction is not enabled. JD URL alone is not enough; paste JD title and JD text manually.';
-        document.getElementById('llmStatus').textContent = status;
-        document.getElementById('llmStatus').className = state.llmEnabled ? 'hint' : 'hint warning';
+          ? `Model connected: ${config.llmProvider}${config.apiFeedbackModel ? ` / ${config.apiFeedbackModel}` : ''}.`
+          : 'Model is not connected. Paste title and JD text manually.';
+        const el = document.getElementById('llmStatus');
+        el.textContent = status;
+        el.className = state.llmEnabled ? 'hint success' : 'hint warning';
       } catch (_error) {
-        document.getElementById('llmStatus').textContent = 'Could not read LLM status. Paste JD title and JD text manually.';
+        document.getElementById('llmStatus').textContent = 'Could not read model status.';
       }
+    }
+
+    function loadSampleData() {
+      document.getElementById('resumeText').value = 'AI product manager with engineering background. Built AI Job Search Copilot using LLM, RAG, function calling, TypeScript, JavaScript, React, Node, API design, SQL, prompt engineering, and approval workflows. Strong English communication from global company experience.';
+      state.resumeFileName = 'sample-resume.md';
+      state.resumeFile = { name: 'sample-resume.md', type: 'text/plain', dataBase64: btoa('sample resume') };
+      document.getElementById('resumeFileStatus').textContent = 'Selected: sample-resume.md';
+      document.getElementById('websiteUrl').value = 'https://marshallzzz.com';
+      document.getElementById('githubUrl').value = 'https://github.com/yzhan146/AIJobSearchCopilot';
+      document.getElementById('jobTitle').value = 'AI Product Manager - LLM Platform';
+      document.getElementById('company').value = 'Example AI Platform';
+      document.getElementById('location').value = 'Remote';
+      document.getElementById('jobDescription').value = 'Own roadmap for LLM platform, RAG tooling, agent workflow, prompt engineering, API integrations, user research, enterprise AI product strategy, and cross-functional launch execution. English communication preferred.';
+      setStatus('Sample loaded.', 'success');
+    }
+
+    function clearAll() {
+      for (const id of ['resumeText', 'websiteUrl', 'githubUrl', 'jobTitle', 'company', 'location', 'jobUrl', 'jobDescription']) {
+        document.getElementById(id).value = '';
+      }
+      state.analysis = null;
+      state.resumeFileName = '';
+      state.resumeFile = null;
+      document.getElementById('resumeFile').value = '';
+      document.getElementById('resumeFileStatus').textContent = 'PDF preferred. Text-like files are also supported.';
+      document.getElementById('resultSubtitle').textContent = 'Submit one JD to generate a reviewable resume rewrite.';
+      renderResult(null);
+      setStatus('Cleared.');
     }
 
     async function requestJson(url, options = {}) {
@@ -778,9 +785,7 @@
         let errorMessage = text;
         try {
           const parsed = JSON.parse(text);
-          if (parsed.error) {
-            errorMessage = parsed.error;
-          }
+          if (parsed.error) errorMessage = parsed.error;
         } catch (_parseError) {}
         throw new Error(errorMessage);
       }
@@ -825,6 +830,12 @@
       document.getElementById('analyzeButton').disabled = isBusy;
     }
 
+    function formatElapsed(totalSeconds) {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
     function escapeHtml(value) {
       return String(value ?? '')
         .replaceAll('&', '&amp;')
@@ -834,7 +845,6 @@
         .replaceAll("'", '&#039;');
     }
 
-    renderJobList();
     loadConfig();
   </script>
 </body>

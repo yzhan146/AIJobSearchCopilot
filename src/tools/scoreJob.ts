@@ -51,6 +51,9 @@ export function scoreJob(signals: JobSignals, rubric: ScoringRubric): ScoreResul
 }
 
 function scoreLocation(signals: JobSignals, rubric: ScoringRubric): number {
+  if (!rubric.targetLocation.trim() || rubric.weights.location <= 0) {
+    return 0;
+  }
   return signals.location.toLowerCase().includes(rubric.targetLocation.toLowerCase())
     ? rubric.weights.location
     : 0;
@@ -70,6 +73,10 @@ function scoreBySignalCount(count: number, maxScore: number): number {
 }
 
 function scoreCompensation(signals: JobSignals, rubric: ScoringRubric): number {
+  if (rubric.weights.compensation <= 0) {
+    return 0;
+  }
+
   const range = signals.annualCompensationRmb;
   if (!range) {
     return 0;
@@ -162,12 +169,6 @@ function buildConcerns(
 ): string[] {
   const concerns: string[] = [];
 
-  if (breakdown.location === 0) {
-    concerns.push(`Location does not clearly match target: ${signals.location}.`);
-  }
-  if (breakdown.compensation === 0) {
-    concerns.push(`Compensation is missing or below target: ${signals.salaryText}.`);
-  }
   if (signals.riskSignals.length > 0) {
     concerns.push(`Potential workload or role risk signals: ${signals.riskSignals.join(", ")}.`);
   }

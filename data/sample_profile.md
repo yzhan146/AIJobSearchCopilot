@@ -2,12 +2,12 @@
 
 Engineering + product background with experience building execution platforms for distributed data systems, including scheduling, observability, execution identity, monitoring, and cross-functional platform product delivery.
 
-Target roles:
+Current resume-tailoring goal:
 
-- Beijing only
-- AI application layer product roles
-- AI workflow, AI Agent, AIGC, enterprise AI, productivity AI, data intelligence
-- Annual compensation target: 600k-1.5M RMB
+- Optimize one submitted resume for one target JD at a time.
+- Highlight only evidence that is already present in the resume or supplied context.
+- Reorder and re-narrate AI workflow, AI Agent, AIGC, enterprise AI, productivity AI, data intelligence, platform product, and engineering-product evidence when the JD asks for those signals.
+- Treat missing JD requirements as gaps or interview-prep topics instead of adding unsupported resume claims.
 
 Strengths to highlight:
 

@@ -1,22 +1,23 @@
 import type { ScoringRubric } from "../schemas.js";
 
-// Deterministic baseline for Milestone 1.
-// Later milestones can compare LLM-generated judgments against this stable rubric.
+// Deterministic baseline for the learning/demo workflow.
+// The production UI now treats location and compensation as user-supplied context,
+// not as hard-coded default preferences.
 export const defaultRubric: ScoringRubric = {
-  targetLocation: "Beijing",
+  targetLocation: "",
   targetAnnualCompensationRmb: {
-    min: 600_000,
-    max: 1_500_000
+    min: 0,
+    max: 0
   },
   weights: {
-    location: 35,
-    aiFit: 25,
-    productFit: 10,
-    compensation: 15,
+    location: 0,
+    aiFit: 30,
+    productFit: 15,
+    compensation: 0,
     seniority: 10,
-    skillFit: 10,
+    skillFit: 20,
     languageFit: 10,
-    riskPenalty: 5
+    riskPenalty: 10
   },
   aiKeywords: [
     "ai",

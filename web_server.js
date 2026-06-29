@@ -86,6 +86,7 @@ async function analyzeJds(payload){
     .filter(Boolean)
     .join('\n\n');
   const profileText = profileSourceText.toLowerCase();
+  const resumeLanguage = detectResumeLanguage([resumeFileText, resumeText].filter(Boolean).join('\n\n'));
 
   if (!resumeFileName.trim()) {
     throw new Error('Resume File is required. Resume text, personal website, and GitHub are optional background sources.');
@@ -118,18 +119,23 @@ async function analyzeJds(payload){
       const job = normalizedJobs.find((item) => item.title === analysis.title && item.company === analysis.company) || analysis;
       const feedback = await generateModelJobFeedback({
         profileSourceText,
+        resumeLanguage,
         profile: { resumeFileName, resumeText, websiteUrl, githubUrl },
         job,
         baselineAnalysis: analysis
       });
       Object.assign(analysis, feedback);
+      analysis.resumeLanguage = resumeLanguage;
       analysis.rewrittenResumePdfUrl = await writeRewrittenResumePdf(analysis);
     }
   } else {
     for (const analysis of analyses) {
       analysis.rewriteSource = 'not_configured';
+      analysis.resumeLanguage = resumeLanguage;
+      analysis.changeLog = buildFallbackChangeLog(analysis);
       analysis.contentIntegrityNotes = [
         'No API-backed LLM provider is configured, so this run used deterministic local scoring only.',
+        `Detected resume language: ${resumeLanguage}. Any rewritten resume draft must preserve the original resume language.`,
         'Set LLM_PROVIDER=zhipu and ZHIPU_API_KEY in .env.local to generate rewritten resume PDFs with Zhipu.'
       ];
       analysis.gaps = analysis.missingSkills || [];
@@ -159,6 +165,31 @@ async function analyzeJds(payload){
   fs.mkdirSync(PUBLIC_DIR, { recursive: true });
   fs.writeFileSync(path.join(PUBLIC_DIR, 'ui-analysis-results.json'), JSON.stringify(result, null, 2), 'utf8');
   return result;
+}
+
+async function analyzeTargetJd(payload){
+  const job = payload?.job;
+  if (!job || typeof job !== 'object') {
+    throw new Error('job must be an object.');
+  }
+
+  const result = await analyzeJds({
+    profile: payload.profile,
+    jobs: [job]
+  });
+  const analysis = result.analyses[0];
+  return {
+    generatedAt: result.generatedAt,
+    summary: {
+      targetRole: analysis?.title || '',
+      successProbability: analysis?.successProbability || 0,
+      level: analysis?.level || 'Low',
+      recommendation: analysis
+        ? `Use this JD-specific resume draft as a reviewable edit plan for ${analysis.title}.`
+        : 'Submit one JD to generate a targeted resume rewrite.'
+    },
+    analysis
+  };
 }
 
 async function extractResumeFileText(resumeFile, resumeFileName){
@@ -287,14 +318,11 @@ function analyzeOneJob(rawJob, index, profileText){
 
   const hasEnglish = /english|英语|foreign|global|international/i.test(profileText);
   const wantsEnglish = /english|英语|global|international|海外/i.test(jdText);
-  const hasBeijing = /beijing|北京/i.test(jdText);
-
   let score = 38;
   score += Math.min(24, matchedAi.length * 8);
   score += Math.min(18, matchedProduct.length * 6);
   score += Math.min(18, matchedSkills.length * 5);
   score += hasEnglish && wantsEnglish ? 8 : 0;
-  score += hasBeijing ? 4 : 0;
   score -= Math.min(12, missingSkills.length * 3);
   score -= Math.min(10, riskTerms.length * 5);
   score = Math.max(12, Math.min(96, Math.round(score)));
@@ -307,8 +335,7 @@ function analyzeOneJob(rawJob, index, profileText){
     missingSkills,
     riskTerms,
     hasEnglish,
-    wantsEnglish,
-    hasBeijing
+    wantsEnglish
   });
 
   return {
@@ -329,16 +356,47 @@ function analyzeOneJob(rawJob, index, profileText){
   };
 }
 
-function buildRankingReasons({ matchedAi, matchedProduct, matchedSkills, missingSkills, riskTerms, hasEnglish, wantsEnglish, hasBeijing }){
+function buildRankingReasons({ matchedAi, matchedProduct, matchedSkills, missingSkills, riskTerms, hasEnglish, wantsEnglish }){
   const reasons = [];
   if (matchedAi.length > 0) reasons.push(`AI fit is supported by ${matchedAi.slice(0, 3).join(', ')}.`);
   if (matchedProduct.length > 0) reasons.push(`Product background matches ${matchedProduct.slice(0, 3).join(', ')} requirements.`);
   if (matchedSkills.length > 0) reasons.push(`Skill overlap includes ${matchedSkills.slice(0, 4).join(', ')}.`);
   if (hasEnglish && wantsEnglish) reasons.push('English/global experience can be used as a differentiator.');
-  if (hasBeijing) reasons.push('Location appears compatible with Beijing-focused job search.');
   if (missingSkills.length > 0) reasons.push(`Main gaps to address: ${missingSkills.slice(0, 3).join(', ')}.`);
   if (riskTerms.length > 0) reasons.push(`Risk keywords detected: ${riskTerms.join(', ')}.`);
   return reasons.slice(0, 5);
+}
+
+function buildFallbackChangeLog(analysis){
+  const changes = [];
+  if ((analysis.matchedSkills || []).length > 0) {
+    changes.push({
+      section: 'Skills / summary',
+      before: 'Relevant skills may be scattered in the original resume.',
+      after: `Surface ${analysis.matchedSkills.slice(0, 4).join(', ')} near the top.`,
+      reason: 'These terms appear directly in the target JD and can help the recruiter connect the resume to the role.',
+      sourceEvidence: 'Local keyword overlap between submitted resume/profile text and the JD.'
+    });
+  }
+  if ((analysis.rankingReasons || []).length > 0) {
+    changes.push({
+      section: 'Experience bullets',
+      before: 'Original bullets are treated as general career history.',
+      after: 'Reorder bullets so the most JD-relevant product, AI, data, or engineering evidence appears first.',
+      reason: analysis.rankingReasons[0],
+      sourceEvidence: 'Deterministic local analysis.'
+    });
+  }
+  if ((analysis.missingSkills || []).length > 0) {
+    changes.push({
+      section: 'Gaps',
+      before: 'Missing evidence is not added to the resume.',
+      after: `Keep ${analysis.missingSkills.slice(0, 3).join(', ')} as interview prep or learning gaps unless you have real evidence.`,
+      reason: 'The tool must not fabricate capabilities that were not present in the supplied resume/profile.',
+      sourceEvidence: 'JD requirements not found in submitted resume/profile text.'
+    });
+  }
+  return changes;
 }
 
 function buildResumeImprovements({ matchedAi, matchedProduct, matchedSkills, missingSkills, missingAi, title }){
@@ -366,7 +424,7 @@ function shouldUseApiJobFeedback(){
   return Boolean(getFeedbackModelConfig(provider));
 }
 
-async function generateModelJobFeedback({ profileSourceText, profile, job, baselineAnalysis }){
+async function generateModelJobFeedback({ profileSourceText, resumeLanguage, profile, job, baselineAnalysis }){
   const config = getFeedbackModelConfig();
   if (!config) {
     throw new Error('No API-backed LLM provider is configured.');
@@ -376,23 +434,37 @@ async function generateModelJobFeedback({ profileSourceText, profile, job, basel
     'You must only reuse facts present in the candidate resume/profile text or the supplied URLs.',
     'Never invent employers, titles, dates, degrees, metrics, tools, certifications, projects, or achievements.',
     'If a JD asks for something not evidenced in the profile, mark it as a gap instead of adding it to the rewritten resume.',
+    'Preserve the original resume language for every rewritten resume-facing field. Do not translate the resume into the JD language.',
     'Return one strict JSON object and no markdown fences.'
   ].join(' ');
   const user = JSON.stringify({
-    task: 'Analyze one JD against one candidate profile, then produce interview feedback and a JD-targeted resume rewrite.',
+    task: 'Analyze one target JD against one candidate profile, then produce a JD-targeted resume rewrite with an explicit change log. The change log is the primary product output; interview prep is secondary.',
+    languageRule: {
+      detectedResumeLanguage: resumeLanguage,
+      instruction: 'The rewrittenResume.title, rewrittenResume.summary, rewrittenResume.sections headings, rewrittenResume.sections bullets, and changeLog before/after resume snippets must stay in the original resume language. If the JD is in another language, use it only for understanding requirements, not for translating the resume.'
+    },
     requiredOutputShape: {
       successProbability: 'integer 0-100',
       level: 'Strong | Medium | Low',
-      rankingReasons: ['clear reason grounded in resume and JD'],
+      rankingReasons: ['clear reason grounded in resume and JD; do not compare against other JDs'],
+      changeLog: [
+        {
+          section: 'resume section or bullet group changed',
+          before: 'what the original resume likely emphasized, using only supplied evidence',
+          after: 'how the rewritten resume now frames the same evidence',
+          reason: 'why this edit helps for this JD',
+          sourceEvidence: 'which supplied resume/profile fact supports the edit'
+        }
+      ],
       resumeImprovements: ['specific edit recommendation without inventing facts'],
       resumeRewritePlan: ['how to reorder or re-narrate existing content'],
       rewrittenResume: {
-        title: 'candidate or target role title',
-        summary: 'short summary using only evidenced facts',
+        title: 'candidate or target role title in the original resume language',
+        summary: 'short summary using only evidenced facts in the original resume language',
         sections: [
           {
-            heading: 'section heading',
-            bullets: ['resume bullet using only original facts']
+            heading: 'section heading in the original resume language',
+            bullets: ['resume bullet using only original facts and the original resume language']
           }
         ]
       },
@@ -413,7 +485,10 @@ async function generateModelJobFeedback({ profileSourceText, profile, job, basel
       text: profileSourceText.slice(0, 24000)
     },
     job,
-    deterministicBaseline: baselineAnalysis
+    deterministicBaseline: {
+      ...baselineAnalysis,
+      resumeLanguage
+    }
   });
 
   const requestBody = {
@@ -448,7 +523,7 @@ async function generateModelJobFeedback({ profileSourceText, profile, job, basel
   }
 
   const parsed = JSON.parse(content);
-  return normalizeOpenAiFeedback(parsed);
+  return normalizeOpenAiFeedback(parsed, resumeLanguage);
 }
 
 function getFeedbackModelConfig(providerOverride){
@@ -475,7 +550,7 @@ function getFeedbackModelConfig(providerOverride){
   return undefined;
 }
 
-function normalizeOpenAiFeedback(value){
+function normalizeOpenAiFeedback(value, resumeLanguage = 'unknown'){
   if (!value || typeof value !== 'object') {
     throw new Error('OpenAI feedback must be an object.');
   }
@@ -489,18 +564,41 @@ function normalizeOpenAiFeedback(value){
         ? 'Medium'
         : 'Low';
 
+  const rewrittenResume = normalizeRewrittenResume(value.rewrittenResume);
+  const contentIntegrityNotes = readStringList(value.contentIntegrityNotes, 'contentIntegrityNotes');
+  const languageNote = `Language preservation: detected original resume language is ${resumeLanguage}; the rewritten resume must preserve that language rather than translating to the JD language.`;
+  const languageWarnings = buildLanguageWarnings(rewrittenResume, resumeLanguage);
+
   return {
-    rewriteSource: 'openai',
+    rewriteSource: getFeedbackModelConfig()?.provider || 'api',
+    resumeLanguage,
     successProbability,
     level,
     rankingReasons: readStringList(value.rankingReasons, 'rankingReasons'),
+    changeLog: readChangeLog(value.changeLog),
     resumeImprovements: readStringList(value.resumeImprovements, 'resumeImprovements'),
     resumeRewritePlan: readStringList(value.resumeRewritePlan, 'resumeRewritePlan'),
-    rewrittenResume: normalizeRewrittenResume(value.rewrittenResume),
+    rewrittenResume,
     gaps: readStringList(value.gaps, 'gaps'),
     interviewQuestions: readInterviewQuestions(value.interviewQuestions),
-    contentIntegrityNotes: readStringList(value.contentIntegrityNotes, 'contentIntegrityNotes')
+    contentIntegrityNotes: [languageNote, ...languageWarnings, ...contentIntegrityNotes].slice(0, 12)
   };
+}
+
+function readChangeLog(value){
+  if (!Array.isArray(value)) return [];
+  return value.map((item, index) => {
+    if (!item || typeof item !== 'object') {
+      throw new Error(`changeLog[${index}] must be an object.`);
+    }
+    return {
+      section: readRequiredPlainString(item.section, `changeLog[${index}].section`),
+      before: readRequiredPlainString(item.before, `changeLog[${index}].before`),
+      after: readRequiredPlainString(item.after, `changeLog[${index}].after`),
+      reason: readRequiredPlainString(item.reason, `changeLog[${index}].reason`),
+      sourceEvidence: readRequiredPlainString(item.sourceEvidence, `changeLog[${index}].sourceEvidence`)
+    };
+  }).slice(0, 10);
 }
 
 function normalizeRewrittenResume(value){
@@ -524,6 +622,33 @@ function normalizeRewrittenResume(value){
       };
     }).filter((section) => section.bullets.length > 0)
   };
+}
+
+function buildLanguageWarnings(rewrittenResume, resumeLanguage){
+  const text = [
+    rewrittenResume?.title,
+    rewrittenResume?.summary,
+    ...(rewrittenResume?.sections || []).flatMap((section) => [
+      section.heading,
+      ...section.bullets
+    ])
+  ].filter(Boolean).join('\n');
+
+  if (!text.trim()) return [];
+
+  if (resumeLanguage === 'Chinese' && countMatches(text, /[\u4e00-\u9fff]/g) < 20 && countMatches(text, /[a-z]/gi) > 80) {
+    return ['Language warning: the original resume appears to be Chinese, but the rewritten draft contains very little Chinese. Review before using.'];
+  }
+
+  if (resumeLanguage === 'Japanese' && countMatches(text, /[\u3040-\u30ff\u4e00-\u9fff]/g) < 20 && countMatches(text, /[a-z]/gi) > 80) {
+    return ['Language warning: the original resume appears to be Japanese, but the rewritten draft may have shifted languages. Review before using.'];
+  }
+
+  if (resumeLanguage === 'Korean' && countMatches(text, /[\uac00-\ud7af]/g) < 20 && countMatches(text, /[a-z]/gi) > 80) {
+    return ['Language warning: the original resume appears to be Korean, but the rewritten draft may have shifted languages. Review before using.'];
+  }
+
+  return [];
 }
 
 function readInterviewQuestions(value){
@@ -573,6 +698,7 @@ async function writeRewrittenResumePdf(analysis){
 
   await new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 48, size: 'A4' });
+    const labels = getResumePdfLabels(analysis.resumeLanguage);
     const stream = fs.createWriteStream(filePath);
     stream.on('finish', resolve);
     stream.on('error', reject);
@@ -582,12 +708,12 @@ async function writeRewrittenResumePdf(analysis){
 
     doc.fontSize(18).text(resume.title || `${analysis.title} Resume Draft`, { bold: true });
     doc.moveDown(0.35);
-    doc.fontSize(10).fillColor('#555555').text(`Target role: ${analysis.title} | ${analysis.company} | ${analysis.location}`);
+    doc.fontSize(10).fillColor('#555555').text(`${labels.targetRole}: ${analysis.title} | ${analysis.company} | ${analysis.location}`);
     doc.moveDown();
-    doc.fillColor('#111111').fontSize(11).text('Integrity note: This draft must only reorder and re-narrate facts from the submitted resume/profile. Verify every bullet before use.');
+    doc.fillColor('#111111').fontSize(11).text(labels.integrityNote);
     if (resume.summary) {
       doc.moveDown();
-      doc.fontSize(13).text('Summary');
+      doc.fontSize(13).text(labels.summary);
       doc.moveDown(0.2);
       doc.fontSize(10.5).text(resume.summary, { lineGap: 3 });
     }
@@ -603,7 +729,7 @@ async function writeRewrittenResumePdf(analysis){
 
     if (Array.isArray(analysis.contentIntegrityNotes) && analysis.contentIntegrityNotes.length > 0) {
       doc.moveDown();
-      doc.fontSize(13).fillColor('#111111').text('Content Integrity Notes');
+      doc.fontSize(13).fillColor('#111111').text(labels.contentIntegrityNotes);
       doc.moveDown(0.2);
       for (const note of analysis.contentIntegrityNotes.slice(0, 6)) {
         doc.fontSize(9.5).fillColor('#555555').text(`• ${note}`, { indent: 8, lineGap: 2 });
@@ -631,6 +757,74 @@ function applyReadableFont(doc){
       }
     } catch (_error) {}
   }
+}
+
+function getResumePdfLabels(resumeLanguage){
+  if (resumeLanguage === 'Chinese') {
+    return {
+      targetRole: '目标岗位',
+      integrityNote: '真实性说明：这份草稿只应重排和重新叙事已提交简历/资料中的事实。使用前请逐条核对。',
+      summary: '摘要',
+      contentIntegrityNotes: '真实性检查'
+    };
+  }
+
+  if (resumeLanguage === 'Japanese') {
+    return {
+      targetRole: '対象ポジション',
+      integrityNote: '整合性メモ：この草稿は提出された履歴書/プロフィール内の事実のみを再構成したものです。使用前に各項目を確認してください。',
+      summary: '要約',
+      contentIntegrityNotes: '整合性チェック'
+    };
+  }
+
+  if (resumeLanguage === 'Korean') {
+    return {
+      targetRole: '지원 포지션',
+      integrityNote: '무결성 메모: 이 초안은 제출된 이력서/프로필의 사실만 재구성해야 합니다. 사용 전 각 항목을 확인하세요.',
+      summary: '요약',
+      contentIntegrityNotes: '무결성 확인'
+    };
+  }
+
+  return {
+    targetRole: 'Target role',
+    integrityNote: 'Integrity note: This draft must only reorder and re-narrate facts from the submitted resume/profile. Verify every bullet before use.',
+    summary: 'Summary',
+    contentIntegrityNotes: 'Content Integrity Notes'
+  };
+}
+
+function detectResumeLanguage(text){
+  const source = String(text || '').trim();
+  if (!source) return 'unknown';
+
+  const counts = {
+    han: countMatches(source, /[\u4e00-\u9fff]/g),
+    kana: countMatches(source, /[\u3040-\u30ff]/g),
+    hangul: countMatches(source, /[\uac00-\ud7af]/g),
+    arabic: countMatches(source, /[\u0600-\u06ff]/g),
+    cyrillic: countMatches(source, /[\u0400-\u04ff]/g),
+    devanagari: countMatches(source, /[\u0900-\u097f]/g),
+    thai: countMatches(source, /[\u0e00-\u0e7f]/g),
+    latin: countMatches(source, /[a-z]/gi)
+  };
+
+  const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
+  if (total < 20) return 'unknown';
+  if (counts.kana >= 20 || (counts.kana > 0 && counts.han > 0)) return 'Japanese';
+  if (counts.hangul >= 20) return 'Korean';
+  if (counts.han >= 20) return 'Chinese';
+  if (counts.arabic >= 20) return 'Arabic';
+  if (counts.cyrillic >= 20) return 'Cyrillic-script language';
+  if (counts.devanagari >= 20) return 'Devanagari-script language';
+  if (counts.thai >= 20) return 'Thai';
+  if (counts.latin >= 20) return 'English or other Latin-script language';
+  return 'unknown';
+}
+
+function countMatches(text, pattern){
+  return (String(text || '').match(pattern) || []).length;
 }
 
 function safeFilePart(value){
@@ -741,6 +935,17 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (pathname === '/api/analyze-target-jd' && method === 'POST'){
+      try {
+        const payload = await readRequestJson(req);
+        sendJson(res, await analyzeTargetJd(payload));
+      } catch (error) {
+        res.statusCode = 400;
+        sendJson(res, { ok: false, error: String(error) });
+      }
+      return;
+    }
+
     if (pathname === '/api/run-demo' && method === 'POST'){
       const goal = parsed.searchParams.get('goal') || 'apply';
       try {
@@ -799,8 +1004,9 @@ const server = http.createServer(async (req, res) => {
         res.end('Not found');
         return;
       }
+      const disposition = parsed.searchParams.get('download') === '1' ? 'attachment' : 'inline';
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="${fileName.replace(/"/g, '')}"`);
+      res.setHeader('Content-Disposition', `${disposition}; filename="${fileName.replace(/"/g, '')}"`);
       fs.createReadStream(filePath).pipe(res);
       return;
     }

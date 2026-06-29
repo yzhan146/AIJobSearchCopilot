@@ -7,17 +7,16 @@
       "profile-enterprise-ai-target",
       "profile-platform-product-execution"
     ],
-    "notes": "Large-model platform role should retrieve AI application learning, enterprise AI target, and platform product execution evidence."
+    "notes": "Large-model platform role should retrieve AI application learning, AI product/workflow evidence, and platform product execution evidence."
   },
   {
     "jobTitle": "AI Product Manager",
     "company": "Apple",
     "expectedEvidenceIds": [
       "profile-ai-application-learning",
-      "profile-enterprise-ai-target",
       "profile-ai-product-delivery-pipeline"
     ],
-    "notes": "Apple role should retrieve AI application, enterprise AI target, and AI workflow delivery evidence."
+    "notes": "Apple role should retrieve AI application and AI workflow delivery evidence."
   },
   {
     "jobTitle": "AI资深产品经理 - Agent方向",
@@ -37,7 +36,7 @@
       "profile-enterprise-ai-target",
       "profile-platform-product-execution"
     ],
-    "notes": "Qianfan platform role should retrieve AI application, enterprise AI target, and platform product evidence."
+    "notes": "Qianfan platform role should retrieve AI application, AI product/workflow evidence, and platform product evidence."
   },
   {
     "jobTitle": "AI产品经理 - 智能对话与AI员工",
@@ -47,7 +46,7 @@
       "profile-enterprise-ai-target",
       "profile-ai-application-learning"
     ],
-    "notes": "AI employee role should retrieve data workflow, enterprise AI target, and AI application evidence."
+    "notes": "AI employee role should retrieve data workflow, AI product/workflow evidence, and AI application evidence."
   },
   {
     "jobTitle": "AI智能体方向产品经理",
@@ -57,7 +56,7 @@
       "profile-enterprise-ai-target",
       "profile-agent-function-calling-learning"
     ],
-    "notes": "Agent orchestration/tool calling role should retrieve AI application, enterprise AI target, and agent/tool learning evidence."
+    "notes": "Agent orchestration/tool calling role should retrieve AI application, AI product/workflow evidence, and agent/tool learning evidence."
   },
   {
     "jobTitle": "AI Native Device SW Product Manager",
@@ -77,6 +76,6 @@
       "profile-enterprise-ai-target",
       "profile-ai-application-learning"
     ],
-    "notes": "Coze/Agent platform role should retrieve agent tooling, enterprise AI target, and AI application project evidence."
+    "notes": "Coze/Agent platform role should retrieve agent tooling, AI product/workflow evidence, and AI application project evidence."
   }
 ]
