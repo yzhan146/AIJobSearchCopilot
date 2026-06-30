@@ -104,20 +104,6 @@ The main UI now follows `docs/prd-single-jd-resume-tailoring.md`: users upload a
 
 The local UI analysis endpoint uses deterministic keyword/rubric logic so it works without a user-provided API key. A production deployment should keep model calls server-side and use LLMs for structured profile/JD extraction and high-quality resume rewriting, while retaining deterministic ranking validation and safety checks.
 
-## Hosted deployment
-
-This repo now includes `render.yaml` so GetThatJob! can be deployed as its own Node web service. The intended long-term split is:
-
-1. Host the product app at a stable app URL such as `https://getthatjob.marshallzzz.com/`.
-2. Keep `marshallzzz.com/getThatJob/` as a lightweight gateway page.
-3. Push ongoing product changes only to this repo.
-
-See:
-
-```text
-docs/deploy-hosted-app.md
-```
-
 Milestone 6 starts the API-backed resume rewrite path: the local web UI can send a PDF resume to the local server, extract resume text, analyze JD links or pasted JD text with Zhipu or OpenAI when configured, and generate a JD-targeted rewritten PDF draft under `exports/resume-rewrites/`. The rewrite prompt explicitly forbids inventing facts; unsupported JD requirements are returned as gaps instead of being added to the resume.
 
 Run with Zhipu:
