@@ -1136,6 +1136,15 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (pathname === '/healthz'){
+      sendJson(res, {
+        ok: true,
+        service: 'get-that-job',
+        time: new Date().toISOString()
+      });
+      return;
+    }
+
     if (pathname === '/api/analyze-jds' && method === 'POST'){
       try {
         const payload = await readRequestJson(req);

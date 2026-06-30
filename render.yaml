@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: getthatjob
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: node web_server.js
+    healthCheckPath: /healthz
