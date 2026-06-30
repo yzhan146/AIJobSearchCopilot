@@ -263,7 +263,7 @@ async function normalizeJobInput(rawJob, index, llmEnabled){
 async function fetchJobDescriptionFromUrl(url){
   const response = await fetch(url, {
     headers: {
-      'User-Agent': 'AIJobSearchCopilot/0.1 local UI prototype'
+      'User-Agent': 'GetThatJob/0.1 local UI prototype'
     }
   });
 

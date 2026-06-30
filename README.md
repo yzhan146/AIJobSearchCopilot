@@ -1,16 +1,16 @@
-# AI Job Search Copilot
+# GetThatJob!
 
-An agentic workflow demo for matching AI product roles with an engineering-product candidate profile.
+An AI-powered job application assistant for tailoring a resume to one target JD, explaining what changed, and preparing interview answers.
 
 ## Goal
 
-This project turns an ambiguous job-search process into a repeatable AI-powered workflow:
+GetThatJob! turns an ambiguous job-search process into a repeatable AI-powered workflow:
 
-1. Parse job descriptions into structured signals.
-2. Compare roles against a target profile and scoring rubric.
-3. Identify compensation, location, AI-application fit, and workload risk.
-4. Generate resume focus points and recruiter outreach messages.
-5. Export shortlists for human review before applying.
+1. Read a resume and one target JD.
+2. Estimate interview success probability.
+3. Explain what resume content should change and why.
+4. Generate a revised PDF resume draft without inventing facts.
+5. Prepare gaps, likely interview questions, and answer directions.
 
 ## Why this project
 
@@ -100,7 +100,7 @@ http://localhost:8080/
 
 The demo console can run the mock planner locally, reset demo files, show trace entries, list pending approvals, approve a specific `actionId`, and rerun the apply demo to verify that the approved action executes as a queued mock result.
 
-The main UI now follows `docs/ui-improvement-prd.md`: users must upload a resume file, may optionally add resume text, a personal website, or GitHub, submit 1-10 JDs, then receive a success-probability ranking, ranking reasons, and resume improvement suggestions for every submitted JD. JD URL-only submission is allowed only when LLM-backed extraction is enabled; otherwise the UI asks users to paste JD title and text manually. Agent trace and approval demos remain available as a secondary section.
+The main UI now follows `docs/prd-single-jd-resume-tailoring.md`: users upload a resume file, optionally add resume text, a personal website, or GitHub, submit one target JD, then receive success probability, a change log, rewrite rationale, a downloadable revised PDF, gaps, and interview preparation. JD URL-only submission is allowed only when LLM-backed extraction is enabled; otherwise the UI asks users to paste JD title and text manually.
 
 The local UI analysis endpoint uses deterministic keyword/rubric logic so it works without a user-provided API key. A production deployment should keep model calls server-side and use LLMs for structured profile/JD extraction and high-quality resume rewriting, while retaining deterministic ranking validation and safety checks.
 

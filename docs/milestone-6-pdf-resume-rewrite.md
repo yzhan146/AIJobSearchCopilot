@@ -74,6 +74,6 @@ Implemented in the local web app:
 ## Open Questions
 
 - Add OCR for scanned PDFs.
-- Decide whether the public `marshallzzz.com/resumeAssist/` page should stay static or call a deployed backend.
+- Decide whether the public `marshallzzz.com/getThatJob/` page should stay static or call a deployed backend.
 - Add side-by-side diff between original resume sections and rewritten sections.
 - Add user approval before exporting or sharing any rewritten resume externally.

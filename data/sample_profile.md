@@ -60,7 +60,7 @@ Public-safe evidence notes:
 - AI workflow impact: reduced selected spec authoring and review cycles from about one week to about one day, and design iteration from weeks to days by applying AI to well-scoped workflow stages.
 - AI adoption boundaries: can articulate where AI can fully automate well-scoped work and where human PM judgment remains necessary for scenario definition, prioritization, and outcome evaluation.
 - Copilot alignment: contributed to thinking around cross-workload, context-aware AI assistant experiences with conversational workflows and persistent context.
-- AI application learning: building this AI Job Search Copilot as a learning project to practice structured LLM output, RAG, Function Calling, Agent workflow, evaluation, and product polish.
+- AI application learning: building GetThatJob! as a learning project to practice structured LLM output, RAG, Function Calling, Agent workflow, evaluation, and product polish.
 - Honest AI positioning: stronger fit for AI application layer, enterprise workflow, productization, and business-process automation than for foundation-model training or pure algorithm research.
 - Frontend platform experience: built UI experiences and reusable components, with exposure to end-to-end testing, accessibility, unit testing, and user interaction quality.
 - Data visualization experience: built a DAG-like visualization experience for streaming job execution relationships.

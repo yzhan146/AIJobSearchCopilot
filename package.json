@@ -1,8 +1,8 @@
 {
-  "name": "ai-job-search-copilot",
+  "name": "get-that-job",
   "version": "0.1.0",
   "private": true,
-  "description": "A local AI job-search workflow demo for learning LLM, RAG, tool calling, and agent orchestration.",
+  "description": "GetThatJob! helps tailor a resume to one target JD, explain changes, and prepare interview answers.",
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
