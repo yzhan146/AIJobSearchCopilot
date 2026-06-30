@@ -8,6 +8,7 @@ const PORT = process.env.WEB_PORT ? Number(process.env.WEB_PORT) : 8080;
 const PUBLIC_DIR = path.join(process.cwd(), 'exports');
 const WEB_DIR = path.join(process.cwd(), 'web');
 const RESUME_REWRITE_DIR = path.join(PUBLIC_DIR, 'resume-rewrites');
+const ROLE_KNOWLEDGE_PATH = path.join(process.cwd(), 'data', 'internet_role_knowledge.json');
 const MAX_REQUEST_BYTES = 15 * 1024 * 1024;
 const execAsync = promisify(exec);
 const execFileAsync = promisify(execFile);
@@ -76,12 +77,13 @@ function readRequestJson(req){
 
 async function analyzeJds(payload){
   const profile = payload?.profile || {};
+  const requestedModelConfig = readRequestedModelConfig(payload?.modelConfig);
   const resumeFileName = readOptionalString(profile.resumeFileName, 'profile.resumeFileName');
   const resumeText = readOptionalString(profile.resumeText, 'profile.resumeText');
   const websiteUrl = readOptionalString(profile.websiteUrl, 'profile.websiteUrl');
   const githubUrl = readOptionalString(profile.githubUrl, 'profile.githubUrl');
   const resumeFileText = await extractResumeFileText(profile.resumeFile, resumeFileName);
-  const llmEnabled = isLlmEnabled();
+  const llmEnabled = isLlmEnabled(requestedModelConfig);
   const profileSourceText = [resumeFileName, resumeFileText, resumeText, websiteUrl, githubUrl]
     .filter(Boolean)
     .join('\n\n');
@@ -114,24 +116,30 @@ async function analyzeJds(payload){
     analysis.rank = index + 1;
   });
 
-  if (shouldUseApiJobFeedback()) {
+  if (shouldUseApiJobFeedback(requestedModelConfig)) {
     for (const analysis of analyses) {
       const job = normalizedJobs.find((item) => item.title === analysis.title && item.company === analysis.company) || analysis;
+      const roleKnowledge = retrieveInternetRoleKnowledge(job, 3);
       const feedback = await generateModelJobFeedback({
+        modelConfig: requestedModelConfig,
         profileSourceText,
         resumeLanguage,
         profile: { resumeFileName, resumeText, websiteUrl, githubUrl },
         job,
-        baselineAnalysis: analysis
+        baselineAnalysis: analysis,
+        roleKnowledge
       });
       Object.assign(analysis, feedback);
+      analysis.retrievedRoleKnowledge = roleKnowledge.map(toPublicRoleKnowledge);
       analysis.resumeLanguage = resumeLanguage;
       analysis.rewrittenResumePdfUrl = await writeRewrittenResumePdf(analysis);
     }
   } else {
     for (const analysis of analyses) {
+      const job = normalizedJobs.find((item) => item.title === analysis.title && item.company === analysis.company) || analysis;
       analysis.rewriteSource = 'not_configured';
       analysis.resumeLanguage = resumeLanguage;
+      analysis.retrievedRoleKnowledge = retrieveInternetRoleKnowledge(job, 3).map(toPublicRoleKnowledge);
       analysis.changeLog = buildFallbackChangeLog(analysis);
       analysis.contentIntegrityNotes = [
         'No API-backed LLM provider is configured, so this run used deterministic local scoring only.',
@@ -175,7 +183,8 @@ async function analyzeTargetJd(payload){
 
   const result = await analyzeJds({
     profile: payload.profile,
-    jobs: [job]
+    jobs: [job],
+    modelConfig: payload.modelConfig
   });
   const analysis = result.analyses[0];
   return {
@@ -419,13 +428,12 @@ function buildInterviewTalkingPoints({ matchedAi, matchedProduct, matchedSkills,
   return points.slice(0, 4);
 }
 
-function shouldUseApiJobFeedback(){
-  const provider = String(process.env.LLM_PROVIDER || '').trim().toLowerCase();
-  return Boolean(getFeedbackModelConfig(provider));
+function shouldUseApiJobFeedback(modelConfig){
+  return Boolean(getFeedbackModelConfig(undefined, modelConfig));
 }
 
-async function generateModelJobFeedback({ profileSourceText, resumeLanguage, profile, job, baselineAnalysis }){
-  const config = getFeedbackModelConfig();
+async function generateModelJobFeedback({ modelConfig, profileSourceText, resumeLanguage, profile, job, baselineAnalysis, roleKnowledge = [] }){
+  const config = getFeedbackModelConfig(undefined, modelConfig);
   if (!config) {
     throw new Error('No API-backed LLM provider is configured.');
   }
@@ -442,6 +450,19 @@ async function generateModelJobFeedback({ profileSourceText, resumeLanguage, pro
     languageRule: {
       detectedResumeLanguage: resumeLanguage,
       instruction: 'The rewrittenResume.title, rewrittenResume.summary, rewrittenResume.sections headings, rewrittenResume.sections bullets, and changeLog before/after resume snippets must stay in the original resume language. If the JD is in another language, use it only for understanding requirements, not for translating the resume.'
+    },
+    roleKnowledge: {
+      instruction: 'Use these internet role playbooks as general guidance for role expectations, resume emphasis, gaps, and interview preparation. Do not treat role playbooks as candidate facts. Candidate claims must still come only from the submitted resume/profile.',
+      retrievedPlaybooks: roleKnowledge.map((item) => ({
+        id: item.id,
+        title: item.title,
+        family: item.family,
+        content: item.content,
+        resumeSignals: item.resumeSignals,
+        interviewFocus: item.interviewFocus,
+        matchedTerms: item.matchedTerms,
+        relevanceReason: item.relevanceReason
+      }))
     },
     requiredOutputShape: {
       successProbability: 'integer 0-100',
@@ -487,7 +508,8 @@ async function generateModelJobFeedback({ profileSourceText, resumeLanguage, pro
     job,
     deterministicBaseline: {
       ...baselineAnalysis,
-      resumeLanguage
+      resumeLanguage,
+      retrievedRoleKnowledgeIds: roleKnowledge.map((item) => item.id)
     }
   });
 
@@ -526,14 +548,31 @@ async function generateModelJobFeedback({ profileSourceText, resumeLanguage, pro
   return normalizeOpenAiFeedback(parsed, resumeLanguage);
 }
 
-function getFeedbackModelConfig(providerOverride){
+function getFeedbackModelConfig(providerOverride, requestedConfig){
+  if (requestedConfig) {
+    const provider = String(requestedConfig.provider || '').trim().toLowerCase();
+    if (!provider || !requestedConfig.apiKey || !requestedConfig.model) {
+      return undefined;
+    }
+    const endpoint = requestedConfig.endpoint || defaultEndpointForProvider(provider);
+    if (!endpoint) {
+      throw new Error(`Custom provider "${provider}" needs an endpoint.`);
+    }
+    return {
+      provider,
+      apiKey: requestedConfig.apiKey,
+      model: requestedConfig.model,
+      endpoint
+    };
+  }
+
   const provider = String(providerOverride || process.env.LLM_PROVIDER || '').trim().toLowerCase();
   if (provider === 'openai' && process.env.OPENAI_API_KEY) {
     return {
       provider,
       apiKey: process.env.OPENAI_API_KEY,
       model: process.env.OPENAI_MODEL || 'gpt-5.5',
-      endpoint: 'https://api.openai.com/v1/chat/completions'
+      endpoint: defaultEndpointForProvider(provider)
     };
   }
 
@@ -543,11 +582,56 @@ function getFeedbackModelConfig(providerOverride){
       provider,
       apiKey: zhipuApiKey,
       model: process.env.ZHIPU_MODEL || 'glm-4.5-air',
-      endpoint: process.env.ZHIPU_ENDPOINT || 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
+      endpoint: process.env.ZHIPU_ENDPOINT || defaultEndpointForProvider(provider)
     };
   }
 
   return undefined;
+}
+
+function readRequestedModelConfig(value){
+  if (value === undefined || value === null || value === false) return undefined;
+  if (!value || typeof value !== 'object') {
+    throw new Error('modelConfig must be an object when provided.');
+  }
+
+  const provider = readOptionalString(value.provider, 'modelConfig.provider').toLowerCase();
+  const apiKey = readOptionalString(value.apiKey, 'modelConfig.apiKey');
+  const model = readOptionalString(value.model, 'modelConfig.model');
+  const endpoint = readOptionalString(value.endpoint, 'modelConfig.endpoint');
+
+  if (!provider && !apiKey && !model && !endpoint) {
+    return undefined;
+  }
+  if (!provider) {
+    throw new Error('modelConfig.provider is required when using a custom model.');
+  }
+  if (!apiKey) {
+    throw new Error('modelConfig.apiKey is required when using a custom model.');
+  }
+  if (!model) {
+    throw new Error('modelConfig.model is required when using a custom model.');
+  }
+  if (endpoint) {
+    try {
+      new URL(endpoint);
+    } catch (_error) {
+      throw new Error('modelConfig.endpoint must be a valid URL when provided.');
+    }
+  }
+
+  return {
+    provider,
+    apiKey,
+    model,
+    endpoint
+  };
+}
+
+function defaultEndpointForProvider(provider){
+  if (provider === 'openai') return 'https://api.openai.com/v1/chat/completions';
+  if (provider === 'zhipu') return 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+  return '';
 }
 
 function normalizeOpenAiFeedback(value, resumeLanguage = 'unknown'){
@@ -844,6 +928,133 @@ function findTerms(text, terms){
   return terms.filter((term) => text.includes(term.toLowerCase()));
 }
 
+function retrieveInternetRoleKnowledge(job, limit = 3){
+  const knowledge = readInternetRoleKnowledge();
+  const queryTerms = buildRoleQueryTerms(job);
+  return knowledge
+    .map((item) => scoreRoleKnowledge(item, queryTerms))
+    .filter((item) => item.score > 0)
+    .sort((left, right) => right.score - left.score || left.id.localeCompare(right.id))
+    .slice(0, limit);
+}
+
+function readInternetRoleKnowledge(){
+  if (!fs.existsSync(ROLE_KNOWLEDGE_PATH)) return [];
+  const parsed = JSON.parse(fs.readFileSync(ROLE_KNOWLEDGE_PATH, 'utf8'));
+  if (!Array.isArray(parsed)) {
+    throw new Error(`${ROLE_KNOWLEDGE_PATH} must contain a JSON array.`);
+  }
+  return parsed.map((item, index) => validateRoleKnowledge(item, index));
+}
+
+function validateRoleKnowledge(item, index){
+  if (!item || typeof item !== 'object') {
+    throw new Error(`Role knowledge at index ${index} must be an object.`);
+  }
+  return {
+    id: readRequiredPlainString(item.id, `roleKnowledge[${index}].id`),
+    title: readRequiredPlainString(item.title, `roleKnowledge[${index}].title`),
+    family: readRequiredPlainString(item.family, `roleKnowledge[${index}].family`),
+    content: readRequiredPlainString(item.content, `roleKnowledge[${index}].content`),
+    resumeSignals: readStringList(item.resumeSignals, `roleKnowledge[${index}].resumeSignals`),
+    interviewFocus: readStringList(item.interviewFocus, `roleKnowledge[${index}].interviewFocus`),
+    keywords: readStringList(item.keywords, `roleKnowledge[${index}].keywords`),
+    citation: readRequiredPlainString(item.citation, `roleKnowledge[${index}].citation`)
+  };
+}
+
+function buildRoleQueryTerms(job){
+  const text = [
+    job.title,
+    job.company,
+    job.location,
+    job.description,
+    ...(Array.isArray(job.skillset) ? job.skillset : []),
+    ...(Array.isArray(job.language) ? job.language : [])
+  ].filter(Boolean).join(' ');
+  return roleTokenize(text);
+}
+
+function scoreRoleKnowledge(item, queryTerms){
+  const searchable = roleNormalize([
+    item.id,
+    item.title,
+    item.family,
+    item.content,
+    ...item.resumeSignals,
+    ...item.interviewFocus,
+    ...item.keywords
+  ].join(' '));
+  const matchedTerms = queryTerms.filter((term) => searchable.includes(term));
+  const keywordMatches = item.keywords
+    .map(roleNormalize)
+    .filter((keyword) => keywordMatchesRoleQuery(keyword, queryTerms));
+  const uniqueMatches = [...new Set([...keywordMatches, ...matchedTerms])].slice(0, 10);
+  const score = uniqueMatches.reduce((sum, term) => sum + Math.max(2, term.length > 8 ? 5 : 3), 0);
+  return {
+    ...item,
+    score,
+    matchedTerms: uniqueMatches,
+    relevanceReason: uniqueMatches.length
+      ? `Retrieved because ${item.title} matches: ${uniqueMatches.slice(0, 5).join(', ')}.`
+      : `No direct match found for ${item.title}.`
+  };
+}
+
+function toPublicRoleKnowledge(item){
+  return {
+    id: item.id,
+    title: item.title,
+    family: item.family,
+    score: item.score,
+    matchedTerms: item.matchedTerms,
+    relevanceReason: item.relevanceReason
+  };
+}
+
+function keywordMatchesRoleQuery(keyword, queryTerms){
+  if (queryTerms.includes(keyword)) return true;
+  const parts = keyword.split(/[^a-z0-9\u4e00-\u9fff+#.]+/iu).filter((part) => part.length >= 2);
+  if (parts.length > 1) {
+    return parts.every((part) => queryTerms.includes(part));
+  }
+  return queryTerms.some((term) => keyword.includes(term) || term.includes(keyword));
+}
+
+function roleTokenize(text){
+  return [...new Set(roleNormalize(text)
+    .split(/[^a-z0-9\u4e00-\u9fff+#.]+/iu)
+    .filter((term) => term.length >= 2 && !ROLE_STOP_WORDS.has(term)))];
+}
+
+function roleNormalize(text){
+  return String(text || '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+const ROLE_STOP_WORDS = new Set([
+  'and',
+  'or',
+  'the',
+  'for',
+  'to',
+  'of',
+  'in',
+  'a',
+  'an',
+  'with',
+  'role',
+  'job',
+  'work',
+  'team',
+  'teams',
+  'user',
+  'users',
+  '负责',
+  '岗位',
+  '团队',
+  '工作'
+]);
+
 function readRequiredString(value, fieldName){
   if (typeof value !== 'string' || value.trim().length === 0) {
     throw new Error(`${fieldName} must be a non-empty string.`);
@@ -859,7 +1070,8 @@ function readOptionalString(value, fieldName){
   return value.trim();
 }
 
-function isLlmEnabled(){
+function isLlmEnabled(requestedConfig){
+  if (requestedConfig) return true;
   const provider = String(process.env.LLM_PROVIDER || '').trim().toLowerCase();
   return Boolean(provider && provider !== 'none' && provider !== 'false' && provider !== 'mock');
 }

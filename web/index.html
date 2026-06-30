@@ -61,6 +61,15 @@
       padding: 11px 12px;
       width: 100%;
     }
+    select {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      font: inherit;
+      padding: 11px 12px;
+      width: 100%;
+    }
     textarea { min-height: 132px; resize: vertical; }
     button {
       background: var(--ink);
@@ -131,6 +140,12 @@
       gap: 10px;
       margin-top: 16px;
     }
+    .cache-actions { margin-top: 8px; }
+    button.small-button {
+      font-size: 13px;
+      min-height: 34px;
+      padding: 7px 10px;
+    }
     .hint {
       background: var(--surface-2);
       border-radius: 8px;
@@ -143,6 +158,26 @@
     .hint.error { background: #fef2f2; color: var(--red); font-weight: 700; }
     .hint.success { background: #ecfdf5; color: var(--green); font-weight: 700; }
     .muted { color: var(--muted); }
+    .toggle-row {
+      align-items: center;
+      color: var(--ink);
+      display: flex;
+      gap: 10px;
+      margin: 14px 0 6px;
+    }
+    .toggle-row input {
+      margin: 0;
+      width: auto;
+    }
+    .config-panel {
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin-top: 10px;
+      padding: 14px;
+    }
+    .config-panel.hidden { display: none; }
+    .config-panel label:first-child { margin-top: 0; }
     .result-grid {
       display: grid;
       gap: 12px;
@@ -338,7 +373,10 @@
 
           <label for="resumeFile">Resume file</label>
           <input id="resumeFile" type="file" accept=".pdf,.txt,.md,.csv,.json" />
-          <div id="resumeFileStatus" class="hint">PDF preferred. Text-like files are also supported.</div>
+          <div id="resumeFileStatus" class="hint">PDF preferred. Text-like files are also supported. Max 1 MB.</div>
+          <div class="actions cache-actions">
+            <button class="secondary small-button" type="button" onclick="clearCachedResume()">Clear default resume</button>
+          </div>
 
           <label for="resumeText">Extra context</label>
           <textarea id="resumeText" placeholder="Optional: paste portfolio notes, project details, or facts not obvious in the PDF."></textarea>
@@ -360,6 +398,31 @@
             <h2><span class="step">2</span> Target JD</h2>
           </div>
           <div id="llmStatus" class="hint warning">Checking model status...</div>
+
+          <label class="toggle-row" for="useCustomApi">
+            <input id="useCustomApi" type="checkbox" />
+            <span>Use my own API for this analysis</span>
+          </label>
+          <div id="customApiPanel" class="config-panel hidden">
+            <div id="customApiHint" class="hint">Optional override. Leave this off to use the default model. Your API key is used only for this analysis request.</div>
+
+            <div class="row">
+              <div>
+                <label for="customProvider">Provider</label>
+                <input id="customProvider" placeholder="openai / claude / qwen / zhipu / ..." />
+              </div>
+              <div>
+                <label for="customModel">Model</label>
+                <input id="customModel" placeholder="gpt-5 / claude-sonnet / qwen-max / ..." />
+              </div>
+            </div>
+
+            <label for="customApiKey">API key</label>
+            <input id="customApiKey" type="password" placeholder="Your provider key" autocomplete="off" />
+
+            <label for="customEndpoint">Endpoint</label>
+            <input id="customEndpoint" placeholder="Optional for OpenAI/Zhipu defaults. Required for other providers." />
+          </div>
 
           <label for="jobUrl">JD URL</label>
           <input id="jobUrl" placeholder="https://..." />
@@ -407,11 +470,16 @@
       analysis: null,
       llmEnabled: false,
       llmProvider: null,
+      defaultModelLabel: '',
       resumeFileName: '',
       resumeFile: null,
       loadingTimer: null,
       loadingStartedAt: 0
     };
+
+    const RESUME_CACHE_KEY = 'getThatJob.cachedResume.v1';
+    const MAX_CACHED_RESUME_BYTES = 1024 * 1024;
+    const DEFAULT_RESUME_HINT = 'PDF preferred. Text-like files are also supported. Max 1 MB.';
 
     const loadingSteps = [
       {
@@ -449,22 +517,42 @@
     document.getElementById('resumeFile').addEventListener('change', async (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
-      state.resumeFileName = file.name;
-      state.resumeFile = {
+
+      if (file.size > MAX_CACHED_RESUME_BYTES) {
+        event.target.value = '';
+        restoreCachedResumeStatus();
+        setStatus(`Resume must be 1 MB or smaller. ${file.name} was ${formatBytes(file.size)}.`, 'error');
+        return;
+      }
+
+      const resumeFile = {
         name: file.name,
         type: file.type || inferFileType(file.name),
+        size: file.size,
         dataBase64: await readFileAsBase64(file)
       };
-      document.getElementById('resumeFileStatus').textContent = `Selected: ${file.name}`;
+      const savedToCache = cacheResumeFile(resumeFile);
+      setActiveResume(resumeFile, savedToCache ? 'uploaded' : 'uploaded-unsaved');
 
       if (file.name.match(/\.pdf$/i) || file.type === 'application/pdf') {
-        setStatus(`Loaded ${file.name}.`);
+        setStatus(
+          savedToCache
+            ? `Loaded ${file.name} and saved as the default resume.`
+            : `Loaded ${file.name}, but the browser could not save it as the default resume.`,
+          savedToCache ? 'success' : 'warning'
+        );
         return;
       }
 
       try {
         document.getElementById('resumeText').value = await file.text();
       } catch (_error) {}
+      setStatus(
+        savedToCache
+          ? `Loaded ${file.name} and saved as the default resume.`
+          : `Loaded ${file.name}, but the browser could not save it as the default resume.`,
+        savedToCache ? 'success' : 'warning'
+      );
     });
 
     async function analyzeTarget() {
@@ -493,7 +581,11 @@
         const result = await requestJson('/api/analyze-target-jd', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ profile, job })
+          body: JSON.stringify({
+            profile,
+            job,
+            modelConfig: readCustomModelConfig()
+          })
         });
         stopAnalysisFeedback();
         state.analysis = result.analysis;
@@ -727,7 +819,7 @@
 
     function validateJob(job) {
       if (job.title && job.description) return { ok: true };
-      if (job.url && state.llmEnabled) return { ok: true };
+      if (job.url && canUseLlmForThisRun()) return { ok: true };
       if (job.url) {
         return { ok: false, message: 'URL-only analysis needs the model to fetch and read the JD. Paste the title and JD text, or check model config.' };
       }
@@ -739,12 +831,10 @@
         const config = await requestJson('/api/config');
         state.llmEnabled = Boolean(config.llmEnabled);
         state.llmProvider = config.llmProvider;
-        const status = state.llmEnabled
-          ? `Model connected: ${config.llmProvider}${config.apiFeedbackModel ? ` / ${config.apiFeedbackModel}` : ''}.`
-          : 'Model is not connected. Paste title and JD text manually.';
-        const el = document.getElementById('llmStatus');
-        el.textContent = status;
-        el.className = state.llmEnabled ? 'hint success' : 'hint warning';
+        state.defaultModelLabel = config.apiFeedbackProvider
+          ? `${config.apiFeedbackProvider}${config.apiFeedbackModel ? ` / ${config.apiFeedbackModel}` : ''}`
+          : '';
+        updateModelStatus();
       } catch (_error) {
         document.getElementById('llmStatus').textContent = 'Could not read model status.';
       }
@@ -754,7 +844,7 @@
       document.getElementById('resumeText').value = 'AI product manager with engineering background. Built GetThatJob! using LLM, RAG, function calling, TypeScript, JavaScript, React, Node, API design, SQL, prompt engineering, and approval workflows. Strong English communication from global company experience.';
       state.resumeFileName = 'sample-resume.md';
       state.resumeFile = { name: 'sample-resume.md', type: 'text/plain', dataBase64: btoa('sample resume') };
-      document.getElementById('resumeFileStatus').textContent = 'Selected: sample-resume.md';
+      document.getElementById('resumeFileStatus').textContent = 'Using sample resume for this session. Your default resume is unchanged.';
       document.getElementById('websiteUrl').value = 'https://marshallzzz.com';
       document.getElementById('githubUrl').value = 'https://github.com/yzhan146/AIJobSearchCopilot';
       document.getElementById('jobTitle').value = 'AI Product Manager - LLM Platform';
@@ -765,14 +855,15 @@
     }
 
     function clearAll() {
-      for (const id of ['resumeText', 'websiteUrl', 'githubUrl', 'jobTitle', 'company', 'location', 'jobUrl', 'jobDescription']) {
+      for (const id of ['resumeText', 'websiteUrl', 'githubUrl', 'jobTitle', 'company', 'location', 'jobUrl', 'jobDescription', 'customModel', 'customApiKey', 'customEndpoint']) {
         document.getElementById(id).value = '';
       }
+      document.getElementById('customProvider').value = '';
+      document.getElementById('useCustomApi').checked = false;
+      toggleCustomApiPanel();
       state.analysis = null;
-      state.resumeFileName = '';
-      state.resumeFile = null;
       document.getElementById('resumeFile').value = '';
-      document.getElementById('resumeFileStatus').textContent = 'PDF preferred. Text-like files are also supported.';
+      restoreCachedResumeStatus();
       document.getElementById('resultSubtitle').textContent = 'Submit one JD to generate a reviewable resume rewrite.';
       renderResult(null);
       setStatus('Cleared.');
@@ -796,6 +887,63 @@
       return document.getElementById(id).value.trim();
     }
 
+    function readCustomModelConfig() {
+      if (!document.getElementById('useCustomApi').checked) return null;
+
+      const provider = readInput('customProvider').toLowerCase();
+      const model = readInput('customModel');
+      const apiKey = readInput('customApiKey');
+      const endpoint = readInput('customEndpoint');
+
+      if (!provider || !model || !apiKey) {
+        throw new Error('Custom API needs provider, model, and API key.');
+      }
+
+      return { provider, model, apiKey, endpoint };
+    }
+
+    function canUseLlmForThisRun() {
+      if (state.llmEnabled) return true;
+      if (!document.getElementById('useCustomApi').checked) return false;
+      return Boolean(readInput('customProvider') && readInput('customModel') && readInput('customApiKey'));
+    }
+
+    function toggleCustomApiPanel() {
+      const enabled = document.getElementById('useCustomApi').checked;
+      document.getElementById('customApiPanel').className = enabled ? 'config-panel' : 'config-panel hidden';
+      updateCustomApiHint();
+      updateModelStatus();
+    }
+
+    function updateCustomApiHint() {
+      const provider = readInput('customProvider').toLowerCase();
+      const hint = provider === 'zhipu'
+        ? 'Use your own Zhipu key and model name for this run. Endpoint is optional unless you want a custom gateway.'
+        : provider === 'openai'
+          ? 'Use your own OpenAI key and model for this run. Endpoint is optional unless you want a proxy or custom gateway.'
+          : 'Use any provider you like. For non-default providers, add a compatible endpoint for this run.';
+      document.getElementById('customApiHint').textContent = hint;
+    }
+
+    function updateModelStatus() {
+      const usingCustom = document.getElementById('useCustomApi').checked;
+      const el = document.getElementById('llmStatus');
+      if (usingCustom) {
+        const provider = readInput('customProvider') || 'custom';
+        const model = readInput('customModel');
+        el.textContent = model
+          ? `Custom model ready: ${provider} / ${model}. Default fallback stays ${state.defaultModelLabel || 'available on the server'}.`
+          : `Custom API enabled. Add your model and API key to override the default ${state.defaultModelLabel || 'server model'}.`;
+        el.className = 'hint warning';
+        return;
+      }
+
+      el.textContent = state.llmEnabled
+        ? `Default model connected: ${state.defaultModelLabel}.`
+        : 'Default model is not connected. Paste title and JD text manually, or turn on your own API below.';
+      el.className = state.llmEnabled ? 'hint success' : 'hint warning';
+    }
+
     function readFileAsBase64(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -812,6 +960,89 @@
       if (/\.pdf$/i.test(fileName)) return 'application/pdf';
       if (/\.(txt|md|csv|json)$/i.test(fileName)) return 'text/plain';
       return 'application/octet-stream';
+    }
+
+    function setActiveResume(resumeFile, source = 'uploaded') {
+      state.resumeFileName = resumeFile.name;
+      state.resumeFile = {
+        name: resumeFile.name,
+        type: resumeFile.type || inferFileType(resumeFile.name),
+        dataBase64: resumeFile.dataBase64
+      };
+      const sizeText = resumeFile.size ? ` (${formatBytes(resumeFile.size)})` : '';
+      const prefix = source === 'cached' ? 'Using default resume' : 'Selected';
+      const suffix = source === 'cached'
+        ? ' Upload a new file to replace it.'
+        : source === 'uploaded-unsaved'
+          ? ' Browser could not save it as the default resume.'
+          : ' Saved as the default resume.';
+      document.getElementById('resumeFileStatus').textContent = `${prefix}: ${resumeFile.name}${sizeText}.${suffix}`;
+    }
+
+    function cacheResumeFile(resumeFile) {
+      try {
+        localStorage.setItem(RESUME_CACHE_KEY, JSON.stringify({
+          name: resumeFile.name,
+          type: resumeFile.type || inferFileType(resumeFile.name),
+          size: resumeFile.size || 0,
+          dataBase64: resumeFile.dataBase64,
+          cachedAt: new Date().toISOString()
+        }));
+        return true;
+      } catch (_error) {
+        return false;
+      }
+    }
+
+    function readCachedResume() {
+      try {
+        const raw = localStorage.getItem(RESUME_CACHE_KEY);
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        if (!cached?.name || !cached?.dataBase64) return null;
+        if (cached.size && cached.size > MAX_CACHED_RESUME_BYTES) {
+          localStorage.removeItem(RESUME_CACHE_KEY);
+          return null;
+        }
+        return {
+          name: cached.name,
+          type: cached.type || inferFileType(cached.name),
+          size: cached.size || 0,
+          dataBase64: cached.dataBase64
+        };
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    function restoreCachedResumeStatus() {
+      const cached = readCachedResume();
+      if (cached) {
+        setActiveResume(cached, 'cached');
+        return true;
+      }
+      state.resumeFileName = '';
+      state.resumeFile = null;
+      document.getElementById('resumeFileStatus').textContent = DEFAULT_RESUME_HINT;
+      return false;
+    }
+
+    function clearCachedResume() {
+      try {
+        localStorage.removeItem(RESUME_CACHE_KEY);
+      } catch (_error) {}
+      state.resumeFileName = '';
+      state.resumeFile = null;
+      document.getElementById('resumeFile').value = '';
+      document.getElementById('resumeFileStatus').textContent = DEFAULT_RESUME_HINT;
+      setStatus('Default resume cleared.');
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes) return 'unknown size';
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     }
 
     function setStatus(message, type = 'info') {
@@ -845,6 +1076,11 @@
         .replaceAll("'", '&#039;');
     }
 
+    restoreCachedResumeStatus();
+    document.getElementById('useCustomApi').addEventListener('change', toggleCustomApiPanel);
+    document.getElementById('customProvider').addEventListener('input', updateCustomApiHint);
+    document.getElementById('customProvider').addEventListener('input', updateModelStatus);
+    document.getElementById('customModel').addEventListener('input', updateModelStatus);
     loadConfig();
   </script>
 </body>

@@ -1,0 +1,162 @@
+[
+  {
+    "id": "role-product-manager-general",
+    "title": "General Internet Product Manager",
+    "family": "product",
+    "content": "Traditional product manager roles usually value user insight, requirement definition, roadmap ownership, stakeholder alignment, experiment design, launch execution, metrics review, and tradeoff judgment. Resume tailoring should emphasize problem discovery, prioritization, product decisions, user or business impact, and cross-functional delivery.",
+    "resumeSignals": ["user research", "requirements", "roadmap", "prioritization", "metrics", "launch", "stakeholder management", "growth", "business impact"],
+    "interviewFocus": ["product sense", "prioritization", "metric design", "tradeoff reasoning", "execution story", "stakeholder conflict"],
+    "keywords": ["product manager", "PM", "roadmap", "requirement", "user research", "PRD", "metrics", "launch", "stakeholder", "growth", "产品经理", "需求", "用户研究", "指标", "上线"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-ai-product-manager",
+    "title": "AI Product Manager",
+    "family": "product_ai",
+    "content": "AI product manager roles value product judgment plus practical understanding of LLM, RAG, agent workflows, prompt design, evaluation, data feedback loops, and safety boundaries. Resume tailoring should connect AI capability to real user workflows, measurable product outcomes, and responsible human-in-the-loop design.",
+    "resumeSignals": ["LLM", "RAG", "Agent", "prompt engineering", "AI workflow", "evaluation", "model limitation", "human approval", "data feedback loop"],
+    "interviewFocus": ["AI product architecture", "RAG evaluation", "agent boundaries", "hallucination mitigation", "data flywheel", "model vs product tradeoff"],
+    "keywords": ["AI product", "LLM", "RAG", "agent", "copilot", "prompt", "model", "AIGC", "evaluation", "hallucination", "AI产品", "智能体", "大模型"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-data-product-manager-bi",
+    "title": "Data Product / BI Product Manager",
+    "family": "product_data",
+    "content": "Data product and BI product roles value SQL and analytics fluency, dashboard and metric system design, data governance awareness, data pipeline understanding, business domain modeling, and the ability to turn analysis workflows into productized experiences.",
+    "resumeSignals": ["SQL", "BI", "dashboard", "metric system", "data governance", "data pipeline", "analytics workflow", "data quality", "self-service analytics"],
+    "interviewFocus": ["metric definition", "data quality", "dashboard design", "business analysis", "data lineage", "self-service BI"],
+    "keywords": ["data product", "BI", "SQL", "dashboard", "analytics", "metric", "data governance", "data quality", "数据产品", "数据分析", "指标体系", "看板"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-backend-engineer",
+    "title": "Backend Engineer",
+    "family": "engineering_backend",
+    "content": "Backend engineering roles value API design, service reliability, database modeling, concurrency, distributed systems, performance optimization, observability, testing, and production ownership. Resume tailoring should show technical depth, scale, reliability incidents handled, and clear ownership.",
+    "resumeSignals": ["API design", "database", "distributed systems", "concurrency", "performance", "observability", "production support", "service reliability", "testing"],
+    "interviewFocus": ["system design", "API design", "database tradeoffs", "concurrency", "debugging", "reliability", "performance bottlenecks"],
+    "keywords": ["backend", "API", "service", "database", "distributed", "concurrency", "performance", "observability", "reliability", "后端", "服务端", "高并发", "分布式"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-frontend-engineer",
+    "title": "Frontend Engineer",
+    "family": "engineering_frontend",
+    "content": "Frontend engineering roles value UI architecture, component systems, TypeScript/JavaScript fluency, performance, accessibility, state management, testing, design collaboration, and user interaction quality.",
+    "resumeSignals": ["React", "TypeScript", "JavaScript", "component system", "state management", "performance", "accessibility", "E2E testing", "design collaboration"],
+    "interviewFocus": ["component design", "state management", "frontend performance", "accessibility", "browser behavior", "testing strategy"],
+    "keywords": ["frontend", "React", "TypeScript", "JavaScript", "component", "UI", "performance", "accessibility", "E2E", "前端", "组件", "可访问性"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-fullstack-engineer",
+    "title": "Full-stack Engineer",
+    "family": "engineering_fullstack",
+    "content": "Full-stack roles value the ability to move across frontend, backend, data model, API, deployment, and product tradeoffs. Resume tailoring should show end-to-end ownership, ability to ship, and balanced product-engineering judgment.",
+    "resumeSignals": ["end-to-end ownership", "frontend", "backend", "API", "database", "deployment", "product thinking", "shipping"],
+    "interviewFocus": ["end-to-end architecture", "API and UI contract", "deployment", "tradeoffs", "debugging across layers"],
+    "keywords": ["full stack", "fullstack", "frontend", "backend", "API", "database", "deployment", "end-to-end", "全栈", "前后端"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-big-data-engineer",
+    "title": "Big Data Engineer",
+    "family": "engineering_data",
+    "content": "Big data engineering roles value distributed processing, batch and streaming pipelines, Spark/Flink/Hadoop ecosystems, data warehouse modeling, scheduling, data quality, resource optimization, reliability, and cost efficiency.",
+    "resumeSignals": ["Spark", "Flink", "Hadoop", "Kafka", "data warehouse", "ETL", "pipeline", "scheduler", "data quality", "resource optimization"],
+    "interviewFocus": ["distributed processing", "batch vs streaming", "pipeline reliability", "data skew", "resource tuning", "warehouse modeling"],
+    "keywords": ["big data", "Spark", "Flink", "Hadoop", "Kafka", "ETL", "data warehouse", "pipeline", "scheduler", "大数据", "数仓", "数据开发", "离线", "实时"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-data-analyst",
+    "title": "Data Analyst / Business Analyst",
+    "family": "analytics",
+    "content": "Data analyst roles value SQL, statistical thinking, dashboarding, business diagnosis, metric interpretation, experiment analysis, communication, and the ability to turn ambiguous questions into actionable insight.",
+    "resumeSignals": ["SQL", "dashboard", "A/B test", "funnel analysis", "retention", "business diagnosis", "metric interpretation", "insight communication"],
+    "interviewFocus": ["SQL case", "metric debugging", "funnel analysis", "experiment interpretation", "business judgment"],
+    "keywords": ["data analyst", "business analyst", "SQL", "dashboard", "A/B test", "funnel", "retention", "analysis", "数据分析", "商业分析", "漏斗", "留存"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-data-scientist-ml-engineer",
+    "title": "Data Scientist / Machine Learning Engineer",
+    "family": "ml",
+    "content": "Data scientist and ML engineer roles value statistical modeling, feature engineering, model training, evaluation, deployment, experiment design, Python, data pipelines, and translating model performance into product or business outcomes.",
+    "resumeSignals": ["Python", "machine learning", "feature engineering", "model evaluation", "model deployment", "experiment design", "data pipeline", "business outcome"],
+    "interviewFocus": ["ML fundamentals", "feature design", "model evaluation", "deployment tradeoffs", "experiment design", "data leakage"],
+    "keywords": ["data scientist", "machine learning", "ML", "Python", "feature", "model", "evaluation", "deployment", "算法", "机器学习", "建模", "特征工程"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-technical-architect",
+    "title": "Technical Architect / Tech Lead",
+    "family": "architecture",
+    "content": "Architect and tech lead roles value system decomposition, long-term technical direction, scalability, reliability, cross-team influence, technical standards, migration planning, and the ability to make tradeoffs under uncertainty.",
+    "resumeSignals": ["system architecture", "scalability", "reliability", "migration", "technical standard", "cross-team influence", "design review", "tradeoff"],
+    "interviewFocus": ["system design", "architecture tradeoffs", "migration strategy", "scalability", "leadership without authority", "technical risk"],
+    "keywords": ["architect", "tech lead", "system design", "scalability", "migration", "technical standard", "architecture", "架构", "技术负责人", "系统设计", "迁移"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-solution-architect",
+    "title": "Solution Architect / Pre-sales Technical Consultant",
+    "family": "solution",
+    "content": "Solution architect roles value customer discovery, mapping business problems to technical solutions, cloud architecture, integration design, proof of concept, stakeholder communication, and commercial awareness.",
+    "resumeSignals": ["customer discovery", "solution design", "cloud architecture", "integration", "POC", "stakeholder communication", "technical proposal", "commercial awareness"],
+    "interviewFocus": ["customer scenario", "solution tradeoff", "cloud architecture", "POC plan", "technical communication", "business value"],
+    "keywords": ["solution architect", "pre-sales", "cloud", "integration", "POC", "technical proposal", "customer", "解决方案", "售前", "云架构", "客户"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-devops-sre",
+    "title": "DevOps / SRE / Platform Reliability Engineer",
+    "family": "infra",
+    "content": "DevOps and SRE roles value CI/CD, infrastructure automation, Kubernetes/cloud, observability, incident response, reliability engineering, capacity planning, security basics, and operational excellence.",
+    "resumeSignals": ["CI/CD", "Kubernetes", "cloud", "observability", "incident response", "automation", "capacity planning", "SLO", "reliability"],
+    "interviewFocus": ["incident review", "monitoring design", "deployment pipeline", "Kubernetes basics", "reliability tradeoffs", "automation"],
+    "keywords": ["DevOps", "SRE", "Kubernetes", "CI/CD", "cloud", "observability", "incident", "SLO", "automation", "运维", "稳定性", "监控", "云原生"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-qa-test-engineer",
+    "title": "QA / Test Development Engineer",
+    "family": "quality",
+    "content": "QA and test development roles value test strategy, automation, regression prevention, quality metrics, CI integration, exploratory testing, defect analysis, and collaboration with product and engineering.",
+    "resumeSignals": ["test strategy", "automation testing", "CI", "regression", "quality metrics", "defect analysis", "E2E testing", "exploratory testing"],
+    "interviewFocus": ["test plan", "automation framework", "bug diagnosis", "quality metrics", "risk-based testing", "CI integration"],
+    "keywords": ["QA", "test engineer", "automation testing", "E2E", "regression", "quality", "defect", "测试", "测试开发", "自动化测试", "质量"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-security-engineer",
+    "title": "Security / Privacy / Compliance Engineer",
+    "family": "security",
+    "content": "Security and privacy roles value threat modeling, secure development, vulnerability management, access control, compliance, incident response, privacy regulation, and balancing security with product usability.",
+    "resumeSignals": ["security", "privacy", "compliance", "access control", "threat modeling", "vulnerability", "incident response", "GDPR", "data protection"],
+    "interviewFocus": ["threat model", "access control", "secure design", "incident handling", "compliance tradeoff", "privacy by design"],
+    "keywords": ["security", "privacy", "compliance", "GDPR", "access control", "vulnerability", "threat", "incident", "安全", "隐私", "合规", "权限"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-project-program-manager",
+    "title": "Project / Program Manager",
+    "family": "delivery",
+    "content": "Project and program manager roles value planning, dependency management, stakeholder coordination, risk tracking, delivery governance, communication, milestone control, and cross-team execution.",
+    "resumeSignals": ["planning", "dependency management", "risk tracking", "stakeholder coordination", "delivery", "milestone", "program governance", "cross-team execution"],
+    "interviewFocus": ["project planning", "risk management", "dependency conflict", "communication rhythm", "delivery recovery", "stakeholder alignment"],
+    "keywords": ["project manager", "program manager", "delivery", "risk", "dependency", "milestone", "stakeholder", "项目经理", "项目管理", "交付", "风险"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  },
+  {
+    "id": "role-growth-operations",
+    "title": "Growth / User Operations / Business Operations",
+    "family": "growth_ops",
+    "content": "Growth and operations roles value funnel diagnosis, lifecycle strategy, campaign operations, user segmentation, content or community operations, data-driven iteration, and collaboration with product, marketing, and sales.",
+    "resumeSignals": ["growth", "funnel", "lifecycle", "campaign", "segmentation", "retention", "conversion", "operations", "data-driven iteration"],
+    "interviewFocus": ["growth experiment", "funnel diagnosis", "retention strategy", "campaign review", "segmentation", "ROI and conversion"],
+    "keywords": ["growth", "operations", "lifecycle", "funnel", "retention", "conversion", "campaign", "segmentation", "增长", "运营", "用户运营", "转化", "留存"],
+    "citation": "docs/prd-single-jd-resume-tailoring.md#rag-policy"
+  }
+]

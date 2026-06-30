@@ -21,6 +21,7 @@
     "experiment:prompt:groq": "npm run build && node dist/experiments/runPromptExperiment.js --llm groq",
     "experiment:prompt:deepseek": "npm run build && node dist/experiments/runPromptExperiment.js --llm deepseek",
     "eval:rag": "npm run build && node dist/experiments/runRetrievalEvaluation.js",
+    "eval:role-rag": "npm run build && node dist/experiments/runRoleRetrievalEvaluation.js",
     "start": "node dist/index.js"
   },
   "devDependencies": {

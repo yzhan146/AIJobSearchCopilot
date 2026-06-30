@@ -1,0 +1,68 @@
+[
+  {
+    "jobTitle": "Senior Backend Engineer - Order Platform",
+    "description": "Build high-throughput order services, design APIs, optimize database performance, improve observability, and own production reliability for distributed systems.",
+    "expectedRoleIds": ["role-backend-engineer"],
+    "notes": "Backend service role should retrieve backend engineering playbook."
+  },
+  {
+    "jobTitle": "Frontend Engineer - Design System",
+    "description": "Build reusable React and TypeScript components, improve frontend performance, accessibility, E2E tests, and collaborate closely with designers.",
+    "expectedRoleIds": ["role-frontend-engineer"],
+    "notes": "Frontend role should retrieve frontend engineering playbook."
+  },
+  {
+    "jobTitle": "Big Data Engineer - Real-time Platform",
+    "description": "Develop Spark and Flink pipelines, manage Kafka streams, optimize data warehouse ETL, improve data quality, scheduling, and resource usage.",
+    "expectedRoleIds": ["role-big-data-engineer"],
+    "notes": "Big data role should retrieve big data engineering playbook."
+  },
+  {
+    "jobTitle": "Data Product Manager - BI Platform",
+    "description": "Own BI dashboards, metric systems, data governance, data quality workflows, self-service analytics, and collaborate with data engineering and business teams.",
+    "expectedRoleIds": ["role-data-product-manager-bi"],
+    "notes": "Data product role should retrieve BI/data product playbook."
+  },
+  {
+    "jobTitle": "User Growth Product Manager",
+    "description": "Own user lifecycle, conversion funnel, retention strategy, growth experiments, campaign operations, and data-driven iteration.",
+    "expectedRoleIds": ["role-product-manager-general", "role-growth-operations"],
+    "notes": "Growth PM should retrieve general product and growth operations playbooks."
+  },
+  {
+    "jobTitle": "Machine Learning Engineer - Recommendation",
+    "description": "Build recommendation models with Python, feature engineering, model evaluation, online deployment, experiment design, and data pipeline collaboration.",
+    "expectedRoleIds": ["role-data-scientist-ml-engineer"],
+    "notes": "ML engineer role should retrieve ML/data science playbook."
+  },
+  {
+    "jobTitle": "Technical Architect - Cloud Migration",
+    "description": "Lead system design, architecture review, scalability planning, migration strategy, technical standards, and cross-team engineering alignment.",
+    "expectedRoleIds": ["role-technical-architect"],
+    "notes": "Architecture role should retrieve technical architect playbook."
+  },
+  {
+    "jobTitle": "Solution Architect - Enterprise Cloud",
+    "description": "Work with customers on discovery, cloud architecture, integration design, POC planning, technical proposals, and business value communication.",
+    "expectedRoleIds": ["role-solution-architect"],
+    "notes": "Solution role should retrieve solution architect playbook."
+  },
+  {
+    "jobTitle": "SRE Engineer - Kubernetes Platform",
+    "description": "Own Kubernetes reliability, CI/CD, observability, incident response, SLOs, capacity planning, and infrastructure automation.",
+    "expectedRoleIds": ["role-devops-sre"],
+    "notes": "SRE role should retrieve DevOps/SRE playbook."
+  },
+  {
+    "jobTitle": "Security Engineer - Data Privacy",
+    "description": "Design access control, privacy compliance, GDPR data protection, threat modeling, vulnerability management, and security incident response.",
+    "expectedRoleIds": ["role-security-engineer"],
+    "notes": "Security role should retrieve security/privacy playbook."
+  },
+  {
+    "jobTitle": "Test Development Engineer",
+    "description": "Design automation testing framework, E2E regression tests, CI integration, quality metrics, defect analysis, and risk-based test strategy.",
+    "expectedRoleIds": ["role-qa-test-engineer"],
+    "notes": "Test development role should retrieve QA/test playbook."
+  }
+]
