@@ -788,6 +788,9 @@ async function writeRewrittenResumePdf(analysis){
     stream.on('error', reject);
     doc.on('error', reject);
     doc.pipe(stream);
+    const mojibakeBullet = String.fromCodePoint(0x9225, 0x3f);
+    const originalText = doc.text.bind(doc);
+    doc.text = (value, ...options) => originalText(String(value).replaceAll(mojibakeBullet, '\u2022 '), ...options);
     applyReadableFont(doc);
 
     doc.fontSize(18).text(resume.title || `${analysis.title} Resume Draft`, { bold: true });
@@ -828,6 +831,7 @@ async function writeRewrittenResumePdf(analysis){
 
 function applyReadableFont(doc){
   const candidates = [
+    path.join(process.cwd(), 'assets', 'fonts', 'NotoSansCJKsc-Regular.otf'),
     'C:/Windows/Fonts/msyh.ttc',
     'C:/Windows/Fonts/simhei.ttf',
     'C:/Windows/Fonts/simsun.ttc',
@@ -871,6 +875,40 @@ function getResumePdfLabels(resumeLanguage){
     };
   }
 
+  return {
+    targetRole: 'Target role',
+    integrityNote: 'Integrity note: This draft must only reorder and re-narrate facts from the submitted resume/profile. Verify every bullet before use.',
+    summary: 'Summary',
+    contentIntegrityNotes: 'Content Integrity Notes'
+  };
+}
+
+// Keep PDF labels in escaped form so source encoding cannot corrupt multilingual output.
+function getLegacyPdfLabels(resumeLanguage){
+  if (resumeLanguage === 'Chinese') {
+    return {
+      targetRole: '\u76ee\u6807\u5c97\u4f4d',
+      integrityNote: '\u771f\u5b9e\u6027\u8bf4\u660e\uff1a\u8fd9\u4efd\u8349\u7a3f\u53ea\u5e94\u91cd\u6392\u548c\u91cd\u65b0\u53d9\u8ff0\u63d0\u4ea4\u6750\u6599\u4e2d\u7684\u4e8b\u5b9e\u3002\u4f7f\u7528\u524d\u8bf7\u9010\u6761\u6838\u5bf9\u3002',
+      summary: '\u6458\u8981',
+      contentIntegrityNotes: '\u5185\u5bb9\u771f\u5b9e\u6027\u68c0\u67e5'
+    };
+  }
+  if (resumeLanguage === 'Japanese') {
+    return {
+      targetRole: '\u5bfe\u8c61\u8077\u7a2e',
+      integrityNote: '\u771f\u5b9f\u6027\u306e\u8aac\u660e\uff1a\u3053\u306e\u8349\u7a3f\u306f\u63d0\u51fa\u3055\u308c\u305f\u7d4c\u6b74\u306e\u4e8b\u5b9f\u306e\u307f\u3092\u4e26\u3079\u66ff\u3048\u305f\u3082\u306e\u3067\u3059\u3002\u4f7f\u7528\u524d\u306b\u5404\u9805\u76ee\u3092\u78ba\u8a8d\u3057\u3066\u304f\u3060\u3055\u3044\u3002',
+      summary: '\u6982\u8981',
+      contentIntegrityNotes: '\u5185\u5bb9\u306e\u771f\u5b9f\u6027\u30c1\u30a7\u30c3\u30af'
+    };
+  }
+  if (resumeLanguage === 'Korean') {
+    return {
+      targetRole: '\ubaa9\ud45c \uc9c1\ubb34',
+      integrityNote: '\uc0ac\uc2e4\uc131 \uc548\ub0b4: \uc774 \ucd08\uc548\uc740 \uc81c\ucd9c\ub41c \uc790\ub8cc\uc758 \uc0ac\uc2e4\ub9cc \uc7ac\ubc30\uc5f4\ud558\uace0 \uc7ac\uc11c\uc220\ud55c \uac83\uc785\ub2c8\ub2e4. \uc0ac\uc6a9 \uc804\uc5d0 \ud56d\ubaa9\ubcc4\ub85c \ud655\uc778\ud574 \uc8fc\uc138\uc694.',
+      summary: '\uc694\uc57d',
+      contentIntegrityNotes: '\ub0b4\uc6a9 \uc0ac\uc2e4\uc131 \uac80\ud1a0'
+    };
+  }
   return {
     targetRole: 'Target role',
     integrityNote: 'Integrity note: This draft must only reorder and re-narrate facts from the submitted resume/profile. Verify every bullet before use.',
