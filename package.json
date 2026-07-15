@@ -22,7 +22,7 @@
     "experiment:prompt:deepseek": "npm run build && node dist/experiments/runPromptExperiment.js --llm deepseek",
     "eval:rag": "npm run build && node dist/experiments/runRetrievalEvaluation.js",
     "eval:role-rag": "npm run build && node dist/experiments/runRoleRetrievalEvaluation.js",
-    "start": "node dist/index.js"
+    "start": "node web_server.js"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
@@ -32,5 +32,8 @@
     "pdf-parse": "^2.4.5",
     "pdfkit": "^0.19.1",
     "undici": "^8.5.0"
+  },
+  "engines": {
+    "node": ">=22 <25"
   }
 }

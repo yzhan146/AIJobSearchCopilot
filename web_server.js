@@ -4,7 +4,7 @@ import path from 'node:path';
 import { exec, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
-const PORT = process.env.WEB_PORT ? Number(process.env.WEB_PORT) : 8080;
+const PORT = Number(process.env.PORT || process.env.WEB_PORT || 8080);
 const PUBLIC_DIR = path.join(process.cwd(), 'exports');
 const WEB_DIR = path.join(process.cwd(), 'web');
 const RESUME_REWRITE_DIR = path.join(PUBLIC_DIR, 'resume-rewrites');
@@ -1121,6 +1121,14 @@ const server = http.createServer(async (req, res) => {
       const content = fs.readFileSync(indexPath, 'utf8');
       res.setHeader('Content-Type', 'text/html');
       res.end(content);
+      return;
+    }
+
+    if (pathname === '/healthz'){
+      sendJson(res, {
+        ok: true,
+        service: 'get-that-job'
+      });
       return;
     }
 
